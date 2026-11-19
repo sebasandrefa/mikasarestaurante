@@ -631,7 +631,9 @@ function IntroCanvas({
         if (burnGL && !burnGL.isLost()) burnGL.render(0, 0);
         if (burnGL && paper && burnGL.drewSomething()) {
           // só aparece agora, já com a "foto" desenhada (antes ficava na tela vazio)
-          if (glRef.current) glRef.current.style.visibility = "visible";
+          // por opacidade, não `visibility`: no Safari do iPhone, canvas WebGL criado
+          // escondido (visibility: hidden) não volta a aparecer — o papel sumia sem queimar
+          if (glRef.current) glRef.current.style.opacity = "1";
           paper.style.visibility = "hidden";
           onPaperCb.current?.();
           mode = "gl";
@@ -856,7 +858,7 @@ function IntroCanvas({
   return (
     <>
       {/* invisível até o 1º quadro da queima do papel */}
-      <canvas ref={glRef} aria-hidden className="pointer-events-none invisible absolute inset-0 size-full" />
+      <canvas ref={glRef} aria-hidden className="pointer-events-none absolute inset-0 size-full opacity-0" />
       <canvas ref={ref} aria-hidden className="pointer-events-none absolute inset-0 size-full" />
     </>
   );
