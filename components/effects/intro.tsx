@@ -210,7 +210,11 @@ function createBurnGL(canvas: HTMLCanvasElement, field: { data: Uint8Array; w: n
   if (!gl) return null;
   // Canvas com WebGL perdido vira um retângulo branco no Safari do iPhone: se o
   // sistema derrubar o contexto (falta de memória etc.), o canvas some na hora
-  canvas.addEventListener("webglcontextlost", () => (canvas.style.display = "none"));
+  let lost = false;
+  canvas.addEventListener("webglcontextlost", () => {
+    lost = true;
+    canvas.style.display = "none";
+  });
   const sh = (type: number, src: string) => {
     const s = gl.createShader(type)!;
     gl.shaderSource(s, src);
@@ -278,6 +282,18 @@ function createBurnGL(canvas: HTMLCanvasElement, field: { data: Uint8Array; w: n
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
     },
     render,
+    /** o sistema derrubou o WebGL (no iPhone, por memória) — quem usa troca para o recorte 2D */
+    isLost: () => lost || gl.isContextLost(),
+    /**
+     * Confere se a queima foi mesmo desenhada (lê 1 pixel do meio da tela). No iPhone o
+     * WebGL às vezes "funciona" sem desenhar nada: o papel sumia e o site aparecia direto.
+     */
+    drewSomething() {
+      if (lost || gl.isContextLost()) return false;
+      const px = new Uint8Array(4);
+      gl.readPixels(canvas.width >> 1, canvas.height >> 1, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px);
+      return gl.getError() === gl.NO_ERROR && px[3] > 0;
+    },
     /**
      * Some com o canvas. Sem `loseContext()`: ele espera a placa de vídeo terminar tudo
      * (síncrono) e travava a tela justo quando o site aparecia; o navegador libera o
@@ -612,14 +628,19 @@ function IntroCanvas({
       if (exitAt.current && !burnt && mode === "none") {
         const paper = paperRef.current;
         preparePaper();
-        if (burnGL && paper) {
-          burnGL.render(0, 0);
+        if (burnGL && !burnGL.isLost()) burnGL.render(0, 0);
+        if (burnGL && paper && burnGL.drewSomething()) {
           // só aparece agora, já com a "foto" desenhada (antes ficava na tela vazio)
           if (glRef.current) glRef.current.style.visibility = "visible";
           paper.style.visibility = "hidden";
           onPaperCb.current?.();
           mode = "gl";
         } else mode = "2d";
+      }
+      // WebGL caiu no meio da queima: o papel volta e segue queimando pelo recorte 2D
+      if (exitAt.current && !burnt && mode === "gl" && burnGL?.isLost()) {
+        if (paperRef.current) paperRef.current.style.visibility = "";
+        mode = "2d";
       }
       if (exitAt.current && !burnt && mode === "gl" && burnGL) {
         const sec = (now - exitAt.current) / 1000;
