@@ -20,8 +20,8 @@ export const homeAnchor = (lang: Locale, id: string) => `${localePath(lang, "/")
 export function getNav(lang: Locale, c: Copy): NavItem[] {
   return [
     { key: "philosophy", label: c.nav.philosophy, href: homeAnchor(lang, sectionIds.philosophy) },
-    { key: "omakase", label: c.nav.omakase, href: homeAnchor(lang, sectionIds.omakase) },
     { key: "robata", label: c.nav.robata, href: homeAnchor(lang, sectionIds.robata) },
+    { key: "omakase", label: c.nav.omakase, href: homeAnchor(lang, sectionIds.omakase) },
     { key: "menu", label: c.nav.menu, href: localePath(lang, "/menu") },
     { key: "bar", label: c.nav.bar, href: localePath(lang, "/bar") },
     { key: "location", label: c.nav.location, href: homeAnchor(lang, sectionIds.location) },
