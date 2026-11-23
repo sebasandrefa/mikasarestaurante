@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useRef, type RefObject } from "react";
-import { useMotionValueEvent, type MotionValue } from "motion/react";
+import { animate, useMotionValue, useMotionValueEvent, type AnimationPlaybackControls, type MotionValue } from "motion/react";
 import { withBasePath } from "@/lib/i18n";
+import { useReducedMotion } from "@/lib/motion";
 
 export type FrameSequence = {
   /** pasta dos quadros no PC (vídeo inteiro, 16:9) */
@@ -12,7 +13,7 @@ export type FrameSequence = {
   frames: number;
 };
 
-type Opts = { from: number; to: number; anchorX: number; anchorY: number; eager: boolean };
+type Opts = { anchorX: number; anchorY: number; eager: boolean };
 
 /** Monta o canvas e o carregamento dos quadros; devolve `draw(progresso)` e a limpeza. */
 function setupSequence(el: HTMLElement, cv: HTMLCanvasElement, seq: FrameSequence, o: Opts, initial: number) {
@@ -22,30 +23,46 @@ function setupSequence(el: HTMLElement, cv: HTMLCanvasElement, seq: FrameSequenc
   const dir = portrait ? seq.mobile : seq.desktop;
   const N = seq.frames;
   const imgs: (HTMLImageElement | null)[] = Array(N).fill(null);
-  const frameOf = (prog: number) => Math.round(Math.min(1, Math.max(0, (prog - o.from) / (o.to - o.from))) * (N - 1));
-  let last = -1;
-  let want = frameOf(initial);
+  /** posição contínua no vídeo (ex.: 41.37 = entre o quadro 41 e o 42) */
+  const posOf = (prog: number) => Math.min(1, Math.max(0, prog)) * (N - 1);
+  let last = "";
+  let want = posOf(initial);
 
-  const paint = (f: number) => {
-    let i = f;
-    while (i > 0 && !imgs[i]?.complete) i--;
-    const im = imgs[i];
-    if (!im?.complete || !im.naturalWidth || i === last) return;
-    last = i;
+  const ready = (i: number) => !!imgs[i]?.complete && !!imgs[i]?.naturalWidth;
+  const drawImg = (im: HTMLImageElement, alpha: number) => {
     const W = cv.width;
     const H = cv.height;
     const k = Math.max(W / im.naturalWidth, H / im.naturalHeight);
     const w = im.naturalWidth * k;
     const h = im.naturalHeight * k;
-    ctx.imageSmoothingQuality = "high";
+    ctx.globalAlpha = alpha;
     ctx.drawImage(im, (W - w) * o.anchorX, (H - h) * o.anchorY, w, h);
+  };
+  // câmera lenta fluida: funde o quadro atual com o próximo conforme a fração
+  const paint = (pos: number) => {
+    let a = Math.floor(pos);
+    let frac = pos - a;
+    while (a > 0 && !ready(a)) {
+      a--;
+      frac = 0;
+    }
+    if (!ready(a)) return;
+    const b = Math.min(N - 1, a + 1);
+    if (!ready(b)) frac = 0;
+    const key = `${a}:${Math.round(frac * 40)}:${cv.width}`;
+    if (key === last) return;
+    last = key;
+    ctx.imageSmoothingQuality = "high";
+    drawImg(imgs[a]!, 1);
+    if (frac > 0.02) drawImg(imgs[b]!, frac);
+    ctx.globalAlpha = 1;
   };
   const size = () => {
     // nitidez máxima: até 2x a densidade da tela
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     cv.width = Math.round(cv.clientWidth * dpr);
     cv.height = Math.round(cv.clientHeight * dpr);
-    last = -1;
+    last = "";
     paint(want);
   };
   const load = (i: number) => {
@@ -53,8 +70,8 @@ function setupSequence(el: HTMLElement, cv: HTMLCanvasElement, seq: FrameSequenc
     const im = new Image();
     im.decoding = "async";
     im.onload = () => {
-      if (i <= want) {
-        last = -1;
+      if (i <= Math.ceil(want)) {
+        last = "";
         paint(want);
       }
     };
@@ -79,7 +96,7 @@ function setupSequence(el: HTMLElement, cv: HTMLCanvasElement, seq: FrameSequenc
   window.addEventListener("resize", size);
   return {
     draw: (prog: number) => {
-      want = frameOf(prog);
+      want = posOf(prog);
       paint(want);
     },
     dispose: () => {
@@ -90,40 +107,69 @@ function setupSequence(el: HTMLElement, cv: HTMLCanvasElement, seq: FrameSequenc
 }
 
 /**
- * Desenha num canvas o quadro de um vídeo escolhido pela rolagem (`progress` 0–1).
- * Os quadros só carregam quando `box` se aproxima da tela: 1 a cada 6 primeiro
- * (a cena já funciona), depois o resto. Sem o quadro pedido, mostra o mais próximo já pronto.
- * `from`/`to`: faixa do progresso em que o vídeo anda. `anchorY`: onde o corte vertical encosta (0 topo, 1 base).
+ * Toca um vídeo (sequência de quadros) sozinho, em câmera lenta, para frente e para trás,
+ * só enquanto a cena `box` está na tela — fora dela, pausa. Os quadros carregam quando a
+ * cena se aproxima: 1 a cada 6 primeiro (já funciona), depois o resto.
+ * `duration`: segundos de cada ida (e de cada volta). `anchorY`: onde o corte encosta (0 topo, 1 base).
+ * Movimento reduzido: fica parado num quadro (`still`).
  */
 export function useFrameSequence({
   seq,
   box,
   canvas,
-  progress,
-  from = 0,
-  to = 1,
+  duration = 12,
   anchorX = 0.5,
   anchorY = 0.5,
   eager = false,
+  still = 0.7,
 }: {
   seq: FrameSequence;
   box: RefObject<HTMLElement | null>;
   canvas: RefObject<HTMLCanvasElement | null>;
-  progress: MotionValue<number>;
-  from?: number;
-  to?: number;
+  duration?: number;
   anchorX?: number;
   anchorY?: number;
   /** carregar já (cena no topo da página) */
   eager?: boolean;
-}) {
+  /** quadro fixo (0–1) com movimento reduzido */
+  still?: number;
+}): MotionValue<number> {
+  const reduce = useReducedMotion();
+  const t = useMotionValue(0);
   const draw = useRef<(p: number) => void>(() => {});
+
   useEffect(() => {
     if (!box.current || !canvas.current) return;
-    const s = setupSequence(box.current, canvas.current, seq, { from, to, anchorX, anchorY, eager }, progress.get());
+    const s = setupSequence(box.current, canvas.current, seq, { anchorX, anchorY, eager }, t.get());
     if (!s) return;
     draw.current = s.draw;
     return s.dispose;
-  }, [seq, box, canvas, progress, from, to, anchorX, anchorY, eager]);
-  useMotionValueEvent(progress, "change", (v) => draw.current(v));
+  }, [seq, box, canvas, t, anchorX, anchorY, eager]);
+
+  useEffect(() => {
+    const el = box.current;
+    if (!el) return;
+    if (reduce) {
+      t.set(still);
+      return;
+    }
+    let ctl: AnimationPlaybackControls | null = null;
+    const io = new IntersectionObserver(
+      ([e]) => {
+        if (e.isIntersecting) {
+          if (ctl) ctl.play();
+          else ctl = animate(t, [0, 1], { duration, ease: "easeInOut", repeat: Infinity, repeatType: "reverse" });
+        } else ctl?.pause();
+      },
+      { threshold: 0.35 },
+    );
+    io.observe(el);
+    return () => {
+      io.disconnect();
+      ctl?.stop();
+    };
+  }, [box, t, duration, reduce, still]);
+
+  useMotionValueEvent(t, "change", (v) => draw.current(v));
+  return t;
 }
