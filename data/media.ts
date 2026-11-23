@@ -174,7 +174,8 @@ export type SceneVideo = {
  * cliente) — é só clima, não é a grelha do MIKASA; não usar legenda que diga o contrário.
  * Fonte 1280×720 a 24 fps → câmera lenta 1.5x interpolada a 30 fps + ida e volta no mesmo arquivo:
  * `ffmpeg -i v.mp4 -vf "setpts=1.5*PTS,minterpolate=fps=30:mi_mode=mci:mc_mode=aobmc:me_mode=bidir:vsbmc=1" lento.mp4`
- * `ffmpeg -i lento.mp4 -filter_complex "[0:v]split[a][b];[b]reverse,trim=start_frame=1,setpts=PTS-STARTPTS[r];[a][r]concat=n=2:v=1,format=yuv420p" -an -c:v libx264 -crf 20 -preset veryslow -tune film -movflags +faststart fogo.mp4`
+ * `ffmpeg -i lento.mp4 -filter_complex "[0:v]split[a][b];[b]reverse,trim=start_frame=1,setpts=PTS-STARTPTS[r];[a][r]concat=n=2:v=1,format=yuv420p" -an -c:v libx264 -profile:v high -level:v 4.0 -preset slow -crf 20 -tune film -x264-params ref=4:keyint=60 -movflags +faststart fogo.mp4`
+ * (nível 4.0 e poucos quadros de referência: o iPhone não toca nível 5 em 720p de forma confiável)
  * Substituir por um vídeo real do restaurante quando houver (de preferência 1080p ou 4K).
  */
 export const robataFire: SceneVideo = {
