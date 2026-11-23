@@ -20,8 +20,8 @@ export default async function Home({ params }: PageProps<"/[lang]">) {
     <>
       <Hero lang={lang} />
       <Philosophy lang={lang} />
-      <Omakase lang={lang} features={getOmakaseFeatures(lang)} />
       <Robata lang={lang} />
+      <Omakase lang={lang} features={getOmakaseFeatures(lang)} />
       <MenuPreview lang={lang} />
       <BarPreview lang={lang} />
       <Gallery lang={lang} />
