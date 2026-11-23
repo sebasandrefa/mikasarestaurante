@@ -44,9 +44,10 @@ next-env.d.ts
 /public/media/**/*.mp4
 /public/media/**/*.webm
 /public/media/**/*.mov
-# exceção: loops das cenas (fogo/whisky), já comprimidos (~8–12 MB), substituem as sequências de quadros
+# exceção: loops das cenas (fogo/whisky/lugar), já comprimidos (~5–13 MB)
 !/public/media/robata-fogo/*.mp4
 !/public/media/bar-whisky-pour/*.mp4
+!/public/media/lugar/*.mp4
 
 # export estático (GitHub Pages)
 /out/

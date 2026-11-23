@@ -22,7 +22,7 @@ export function Robata({ lang }: { lang: Locale }) {
   return (
     <section
       id={sectionIds.robata}
-      className="relative isolate pb-[var(--spacing-section)]"
+      className="relative isolate overflow-x-clip pb-[var(--spacing-section)]"
       style={{ background: "linear-gradient(180deg, #0a0a0b 0%, #120a06 18%, #160c06 60%, #0a0a0b 100%)" }}
     >
       {/* Brasa ao fundo + textura de carvão */}

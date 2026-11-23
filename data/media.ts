@@ -204,6 +204,51 @@ export const barPour: SceneVideo = {
   generatedByAI: true,
 };
 
+/**
+ * O lugar — quadros do vídeo real da terraza enviado pelo restaurante (480p, ampliados 4x com
+ * Real-ESRGAN realesr-general-x4v3; ver `placeVideo`). Trocar pelo original em alta quando chegar.
+ */
+const place = (id: string, alt: Localized): MediaAsset => photo(id, 1600, 894, alt);
+export const placePhotos = {
+  terraza: place("lugar-terraza", {
+    es: "Terraza de MIKASA al anochecer, con mesas vestidas de blanco y luces en el jardín",
+    en: "MIKASA's terrace at dusk, with white-clothed tables and garden lights",
+  }),
+  mesa: place("lugar-mesa", {
+    es: "Mesa en la terraza con sillas rojas y vista al jardín",
+    en: "Terrace table with red chairs overlooking the garden",
+  }),
+  letrero: place("lugar-letrero", {
+    es: "Letrero MIKASA ミカサ en la pared de la terraza",
+    en: "MIKASA ミカサ sign on the terrace wall",
+  }),
+  terrazaLuces: place("lugar-terraza-luces", {
+    es: "Mesas de la terraza junto a la entrada, con apliques encendidos",
+    en: "Terrace tables by the entrance, with wall lights on",
+  }),
+  terrazaLetrero: place("lugar-terraza-letrero", {
+    es: "Terraza con lámparas de pie y el letrero de MIKASA al fondo",
+    en: "Terrace with floor lamps and the MIKASA sign in the background",
+  }),
+  palmera: place("lugar-palmera", {
+    es: "Palmera y mesas en la terraza de MIKASA",
+    en: "Palm tree and tables on MIKASA's terrace",
+  }),
+};
+
+/**
+ * Cena "El lugar": vídeo REAL da terraza (não é IA). Trechos 7–11 s, 16–21 s, 31–37,5 s e 52,3–56,4 s
+ * do vídeo enviado, estabilizados (vidstab), unidos com fusões, câmera lenta 0,8x interpolada,
+ * ampliados 4x (Real-ESRGAN) e com fade nas pontas para o loop. Celular: recorte retrato.
+ */
+export const placeVideo: SceneVideo = {
+  src: "/media/lugar/lugar-c83721bb.mp4",
+  mobile: "/media/lugar/lugar-m-d13c1d6e.mp4",
+  poster: "/media/lugar/poster.webp",
+  position: "50% 50%",
+  generatedByAI: false,
+};
+
 export type GalleryItem = {
   asset: MediaAsset;
   category: "platos" | "sushi" | "robata" | "bebidas" | "ambiente" | "detalles" | "chef" | "fuego" | "postres";
@@ -212,7 +257,7 @@ export type GalleryItem = {
 
 const gi = (asset: MediaAsset, category: GalleryItem["category"], ratio: GalleryItem["ratio"]): GalleryItem => ({ asset, category, ratio });
 
-/** Galeria editorial — fotos oficiais. Ambiente, chef, bar e fogo: aguardando material. */
+/** Galeria editorial — fotos oficiais. Ambiente: quadros do vídeo real da terraza. Chef, bar e fogo: aguardando material. */
 export const gallery: GalleryItem[] = [
   gi(photos.sashimiSelection, "sushi", "portrait"),
   gi(photos.lomoSaltadoCausa, "platos", "portrait"),
@@ -226,4 +271,7 @@ export const gallery: GalleryItem[] = [
   gi(photos.salmonRoll, "sushi", "portrait"),
   gi(photos.nagasakiBeefRice, "platos", "portrait"),
   gi(photos.hamachiRollNigiri, "sushi", "portrait"),
+  gi(placePhotos.terrazaLuces, "ambiente", "landscape"),
+  gi(placePhotos.terrazaLetrero, "ambiente", "landscape"),
+  gi(placePhotos.palmera, "ambiente", "landscape"),
 ];
