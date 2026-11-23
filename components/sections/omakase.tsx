@@ -1,199 +1,108 @@
 "use client";
 
 import Link from "next/link";
-import { useLenis } from "lenis/react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
-import { motion, useScroll, useTransform } from "motion/react";
+import { useRef } from "react";
+import { motion, useScroll, useTransform, type MotionValue } from "motion/react";
 import { MediaFrame } from "@/components/media/media-frame";
 import { BrushKanji } from "@/components/motion/brush-kanji";
+import { Reveal } from "@/components/motion/reveal";
 import { SmartLink } from "@/components/layout/smart-link";
 import { Button } from "@/components/ui/button";
 import { getCopy } from "@/data/copy";
 import { localePath, type Locale } from "@/lib/i18n";
-import { useMediaQuery } from "@/lib/hooks/use-media-query";
+import { EASE } from "@/lib/motion";
 import type { OmakaseFeature as Feature } from "@/lib/omakase";
 import { homeAnchor, sectionIds } from "@/lib/nav";
-import { cn } from "@/lib/utils";
 
-function Card({ item, index, lang }: { item: Feature; index: number; lang: Locale }) {
+/**
+ * CENA 4 — Omakase em capítulos.
+ * Cada destaque é um cartão que gruda no topo; o seguinte sobe por cima dele
+ * e o de baixo recua (diminui e escurece) — um jantar servido em etapas.
+ * Os destaques chegam prontos do servidor (o menu completo não vai para o navegador).
+ */
+export function Omakase({ lang, features }: { lang: Locale; features: Feature[] }) {
   const c = getCopy(lang);
+  const stack = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({ target: stack, offset: ["start start", "end end"] });
+  const n = features.length;
+
   return (
-    <article className="group flex w-[82vw] shrink-0 snap-start flex-col sm:w-[58vw] md:w-[min(30rem,34vw)]">
-      <Link
-        href={`${localePath(lang, "/menu")}#${item.id === "hamachi-collection" ? "hamachi-collection" : "omakase-experience"}`}
-        className="relative block aspect-[4/5] w-full overflow-hidden md:aspect-auto md:h-[min(56vh,34rem)]"
-        data-cursor={c.cursor.view}
-      >
-        <div className="size-full transition-transform duration-[1400ms] ease-[var(--ease-mikasa)] group-hover:scale-[1.04]">
-          <MediaFrame asset={item.imagem} lang={lang} kanji="匠" sizes="(min-width:768px) 34vw, 82vw" />
-        </div>
-      </Link>
-      <div className="mt-6 flex items-baseline gap-4">
-        <span className="font-sans text-[0.62rem] tracking-[0.3em] text-ouro tabular-nums">{String(index + 1).padStart(2, "0")}</span>
-        <h3 className="font-display text-display-sm text-washi">{item.nome}</h3>
+    <section id={sectionIds.omakase} aria-label={c.omakase.eyebrow} className="relative bg-sumi py-[var(--spacing-section)]">
+      <div className="mx-auto grid max-w-[100rem] gap-10 px-[var(--spacing-gutter)] lg:grid-cols-12 lg:items-end">
+        <Reveal className="lg:col-span-7">
+          <BrushKanji char="匠" className="mb-6 size-20 opacity-90 xl:size-24" />
+          <div className="mb-7 flex items-center gap-4">
+            <span aria-hidden className="h-px w-10 bg-ouro/70" />
+            <span className="mk-eyebrow">{c.omakase.eyebrow}</span>
+            <span aria-hidden className="font-jp text-sm text-ouro/60">匠</span>
+          </div>
+          <h2 className="font-display text-display-lg font-light text-washi">{c.omakase.title}</h2>
+        </Reveal>
+        <Reveal className="lg:col-span-4 lg:col-start-9" delay={0.15}>
+          <p className="max-w-[36ch] text-[0.95rem] leading-relaxed text-washi-dim">{c.omakase.intro}</p>
+          <Button asChild variant="outline" className="mt-8">
+            <SmartLink href={homeAnchor(lang, sectionIds.reservation)}>{c.omakase.reserve}</SmartLink>
+          </Button>
+        </Reveal>
       </div>
-      {item.componentes?.length ? (
-        <ul className="mt-3 flex flex-wrap gap-x-5 gap-y-1 pl-9">
-          {item.componentes.map((p) => (
-            <li key={p} className="font-display text-lg italic text-ouro-claro">
-              {p}
-            </li>
-          ))}
-        </ul>
-      ) : null}
-      <p className="mt-3 max-w-[38ch] pl-9 text-sm leading-relaxed text-washi-dim">
-        {item.descricao ?? <span className="text-washi-mute">{c.menuPage.pendingDescription}</span>}
-      </p>
-      <p className="mt-4 flex items-baseline gap-4 pl-9 font-sans text-[0.7rem] uppercase tracking-[0.24em] text-washi-mute">
-        {item.porcao ? <span>{item.porcao}</span> : null}
-        <span className="font-display text-xl normal-case tracking-normal text-ouro">{item.price ?? c.menuPage.pendingPrice}</span>
-      </p>
-    </article>
+
+      <div ref={stack} className="mx-auto mt-16 max-w-[100rem] px-[var(--spacing-gutter)] md:mt-24">
+        {features.map((item, i) => (
+          <Chapter key={item.id} item={item} index={i} total={n} progress={scrollYProgress} lang={lang} />
+        ))}
+      </div>
+    </section>
   );
 }
 
-/** Omakase — seção assinatura com scroll horizontal fixado (desktop) e carrossel nativo (mobile). */
-/** Os destaques chegam prontos do servidor (o menu completo não vai para o navegador). */
-export function Omakase({ lang, features }: { lang: Locale; features: Feature[] }) {
+function Chapter({ item, index, total, progress, lang }: { item: Feature; index: number; total: number; progress: MotionValue<number>; lang: Locale }) {
   const c = getCopy(lang);
-  const items = features;
-  const desktop = useMediaQuery("(min-width: 768px)");
-  // scroll horizontal fixado é controlado pelo próprio scroll da pessoa → mantido também com reduced motion
-  const pinned = desktop;
+  // a partir do momento em que gruda, recua um pouco a cada cartão que chega por cima
+  const depth = total - 1 - index;
+  const scale = useTransform(progress, [index / total, 1], [1, 1 - depth * 0.045]);
+  const shade = useTransform(progress, [index / total, 1], [0, depth * 0.2]);
+  const href = `${localePath(lang, "/menu")}#${item.id === "hamachi-collection" ? "hamachi-collection" : "omakase-experience"}`;
 
-  const sectionRef = useRef<HTMLElement>(null);
-  const viewportRef = useRef<HTMLDivElement>(null);
-  const trackRef = useRef<HTMLDivElement>(null);
-  const [distance, setDistance] = useState(0);
-  const lenis = useLenis();
-
-  useEffect(() => {
-    if (!pinned) return;
-    const measure = () => {
-      const track = trackRef.current;
-      const vp = viewportRef.current;
-      if (track && vp) setDistance(Math.max(0, track.scrollWidth - vp.clientWidth));
-    };
-    measure();
-    const ro = new ResizeObserver(measure);
-    if (trackRef.current) ro.observe(trackRef.current);
-    if (viewportRef.current) ro.observe(viewportRef.current);
-    window.addEventListener("resize", measure);
-    return () => {
-      ro.disconnect();
-      window.removeEventListener("resize", measure);
-    };
-  }, [pinned]);
-
-  const { scrollYProgress } = useScroll({ target: sectionRef, offset: ["start start", "end end"] });
-  // pequena pausa no início e no fim; Lenis já suaviza (sem mola extra)
-  const x = useTransform(scrollYProgress, [0.06, 0.94], [0, -distance], { clamp: true });
-
-  /** Setas: avança/volta um card rolando a página até o ponto equivalente. */
-  const go = (dir: 1 | -1) => {
-    const sec = sectionRef.current;
-    if (!sec) return;
-    const range = sec.offsetHeight - window.innerHeight;
-    const n = items.length;
-    const p = Math.min(1, Math.max(0, (window.scrollY - sec.offsetTop) / range));
-    const inner = Math.min(1, Math.max(0, (p - 0.06) / 0.88));
-    const idx = Math.min(n, Math.max(0, Math.round(inner * n) + dir));
-    const target = sec.offsetTop + (0.06 + (idx / n) * 0.88) * range;
-    if (lenis) lenis.scrollTo(target, { duration: 1.4 });
-    else window.scrollTo({ top: target, behavior: "smooth" });
-  };
-
-  const intro = (
-    <div className={cn("flex shrink-0 flex-col justify-center", pinned ? "w-full pr-10" : "w-[82vw] snap-start sm:w-[58vw]")}>
-      <BrushKanji char="匠" className="mb-6 size-20 opacity-90 xl:size-24" />
-      <div className="mb-7 flex items-center gap-4">
-        <span className="font-sans text-[0.65rem] tracking-[0.3em] text-washi-mute tabular-nums">02</span>
-        <span aria-hidden className="h-px w-10 bg-ouro/70" />
-        <span className="mk-eyebrow">{c.omakase.eyebrow}</span>
-        <span aria-hidden className="font-jp text-sm text-ouro/60">匠</span>
-      </div>
-      <h2 className="font-display text-display-lg font-light text-washi">{c.omakase.title}</h2>
-      <p className="mt-8 max-w-[36ch] text-[0.95rem] leading-relaxed text-washi-dim">{c.omakase.intro}</p>
-      <div className="mt-10 flex flex-wrap items-center gap-6">
-        <Button asChild variant="outline">
-          <SmartLink href={homeAnchor(lang, sectionIds.reservation)}>{c.omakase.reserve}</SmartLink>
-        </Button>
-        {pinned ? (
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => go(-1)}
-              aria-label={c.a11y.previous}
-              className="grid size-11 place-items-center border border-line text-washi transition-colors duration-500 hover:border-ouro hover:text-ouro-claro"
-            >
-              <ChevronLeft className="size-4" strokeWidth={1.25} aria-hidden />
-            </button>
-            <button
-              type="button"
-              onClick={() => go(1)}
-              aria-label={c.a11y.next}
-              className="grid size-11 place-items-center border border-line text-washi transition-colors duration-500 hover:border-ouro hover:text-ouro-claro"
-            >
-              <ChevronRight className="size-4" strokeWidth={1.25} aria-hidden />
-            </button>
-          </div>
-        ) : null}
-      </div>
-      {pinned ? (
-        <span className="mt-8 flex items-center gap-3 font-sans text-[0.6rem] uppercase tracking-[0.3em] text-washi-mute">
-          {c.omakase.hint}
-          <span aria-hidden className="h-px w-10 bg-line-strong" />
-        </span>
-      ) : null}
-    </div>
-  );
-
-  const cards = items.map((item, i) => <Card key={item.id} item={item} index={i} lang={lang} />);
-
-  if (!pinned) {
-    // Mobile/tablet: carrossel nativo com snap
-    return (
-      <section id={sectionIds.omakase} aria-label={c.omakase.eyebrow} className="relative bg-sumi py-[var(--spacing-section)]">
-        <div className="mk-no-scrollbar flex snap-x snap-mandatory scroll-px-[var(--spacing-gutter)] gap-8 overflow-x-auto px-[var(--spacing-gutter)] pb-4">
-          {intro}
-          {cards}
-          <div aria-hidden className="w-[4vw] shrink-0" />
-        </div>
-      </section>
-    );
-  }
-
-  // Desktop: texto fixo à esquerda; só os cards deslizam (rolagem vertical ou gesto lateral)
   return (
-    <section
-      ref={sectionRef}
-      id={sectionIds.omakase}
-      aria-label={c.omakase.eyebrow}
-      className="relative bg-sumi"
-      style={distance ? { height: `calc(100vh + ${Math.round(distance * 1.15)}px)` } : undefined}
-    >
-      <div className="sticky top-0 flex h-screen items-center overflow-hidden">
-        <div className="grid w-full grid-cols-[minmax(19rem,34vw)_1fr] items-center pl-[var(--spacing-gutter)] xl:grid-cols-[minmax(22rem,30vw)_1fr]">
-          {intro}
-          <div
-            ref={viewportRef}
-            className="relative overflow-hidden"
-            style={{
-              maskImage: "linear-gradient(to right, transparent 0, #000 4rem, #000 calc(100% - 3rem), transparent 100%)",
-              WebkitMaskImage: "linear-gradient(to right, transparent 0, #000 4rem, #000 calc(100% - 3rem), transparent 100%)",
-            }}
-          >
-            <motion.div ref={trackRef} style={{ x }} className="flex w-max gap-14 pl-16 pr-[var(--spacing-gutter)] will-change-transform">
-              {cards}
-            </motion.div>
+    <div className="sticky mb-[8vh] last:mb-0" style={{ top: `calc(var(--header-h, 5rem) + ${index * 0.9}rem)` }}>
+      <motion.article
+        style={{ scale }}
+        initial={{ clipPath: "inset(42% 0% 42% 0%)" }}
+        whileInView={{ clipPath: "inset(0% 0% 0% 0%)" }}
+        viewport={{ once: true, margin: "0px 0px -15% 0px" }}
+        transition={{ duration: 1.2, ease: EASE }}
+        className="relative grid h-[min(80svh,46rem)] origin-top grid-rows-[1fr_auto] overflow-hidden border border-line bg-carvao md:grid-cols-[1.35fr_1fr] md:grid-rows-1"
+      >
+        <Link href={href} data-cursor={c.cursor.view} className="group relative block min-h-0 overflow-hidden">
+          <div className="size-full transition-transform duration-[1400ms] ease-[var(--ease-mikasa)] group-hover:scale-[1.04]">
+            <MediaFrame asset={item.imagem} lang={lang} kanji="匠" sizes="(min-width:768px) 58vw, 92vw" />
           </div>
+        </Link>
+        <div className="flex flex-col justify-end gap-3 p-6 md:p-10 xl:p-14">
+          <span aria-hidden className="font-display text-[clamp(2.5rem,1.5rem+3vw,4.5rem)] font-light leading-none text-ouro/45 tabular-nums">
+            {String(index + 1).padStart(2, "0")}
+          </span>
+          <h3 className="font-display text-display-md text-washi">{item.nome}</h3>
+          {item.componentes?.length ? (
+            <ul className="flex flex-wrap gap-x-5 gap-y-1">
+              {item.componentes.map((p) => (
+                <li key={p} className="font-display text-lg italic text-ouro-claro">
+                  {p}
+                </li>
+              ))}
+            </ul>
+          ) : null}
+          <p className="line-clamp-3 max-w-[40ch] text-sm leading-relaxed text-washi-dim md:line-clamp-none">
+            {item.descricao ?? <span className="text-washi-mute">{c.menuPage.pendingDescription}</span>}
+          </p>
+          <p className="mt-1 flex items-baseline gap-4 font-sans text-[0.7rem] uppercase tracking-[0.24em] text-washi-mute">
+            {item.porcao ? <span>{item.porcao}</span> : null}
+            <span className="font-display text-xl normal-case tracking-normal text-ouro">{item.price ?? c.menuPage.pendingPrice}</span>
+          </p>
         </div>
-
-        <div aria-hidden className="absolute inset-x-[var(--spacing-gutter)] bottom-10 h-px bg-line">
-          <motion.div className="h-full origin-left bg-ouro" style={{ scaleX: scrollYProgress }} />
-        </div>
-      </div>
-    </section>
+        {/* o cartão de baixo escurece quando o próximo sobe */}
+        <motion.div aria-hidden style={{ opacity: shade }} className="pointer-events-none absolute inset-0 bg-sumi" />
+      </motion.article>
+    </div>
   );
 }

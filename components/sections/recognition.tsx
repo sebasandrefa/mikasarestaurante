@@ -1,5 +1,6 @@
 import { CountUp } from "@/components/motion/count-up";
 import { Reveal } from "@/components/motion/reveal";
+import { SealDraw } from "@/components/motion/seal-draw";
 import { SectionHeading } from "@/components/sections/section-heading";
 import { getCopy } from "@/data/copy";
 import { reviews } from "@/data/reviews";
@@ -15,33 +16,36 @@ export function Recognition({ lang }: { lang: Locale }) {
       <div className="mx-auto max-w-[100rem] px-[var(--spacing-gutter)]">
         <SectionHeading index="07" eyebrow={c.recognition.eyebrow} title={c.recognition.title} align="center" />
 
-        <ul className="mx-auto mt-20 grid max-w-5xl grid-cols-2 border-l border-t border-line md:grid-cols-4">
-          {site.awards.map((a, i) => (
-            <li key={a.year} className="border-b border-r border-line">
-              <Reveal delay={i * 0.1} className="flex flex-col items-center px-4 py-10 text-center md:py-14">
-                <span className="font-display text-[clamp(2.5rem,1.8rem+2.4vw,4rem)] font-light leading-none text-ouro">{a.year}</span>
-                <span className="mt-4 font-sans text-[0.6rem] uppercase tracking-[0.3em] text-washi-dim">{a.name}</span>
-              </Reveal>
-            </li>
-          ))}
-        </ul>
+        {/* Os números do prestígio: o selo se desenha e os números sobem contando */}
+        <div className="mx-auto mt-20 grid max-w-5xl items-center gap-16 md:grid-cols-2 md:gap-10">
+          <Reveal className="flex flex-col items-center text-center">
+            <SealDraw className="size-[clamp(11rem,8rem+12vw,15rem)]">
+              <CountUp
+                to={site.awards.length}
+                className="font-display text-[clamp(4rem,3rem+5vw,7rem)] font-light leading-none text-ouro"
+              />
+            </SealDraw>
+            <p className="mt-8 font-sans text-[0.66rem] uppercase tracking-[0.3em] text-washi-dim">{site.awards[0].name}</p>
+            <p className="mt-3 font-display text-lg italic text-ouro-claro">{site.awards.map((a) => a.year).join(" · ")}</p>
+          </Reveal>
 
-        <Reveal className="mt-20 flex flex-col items-center text-center">
-          <CountUp
-            to={site.social.followers.value}
-            suffix={site.social.followers.suffix}
-            className="font-display text-[clamp(3rem,2rem+4vw,5.5rem)] font-light leading-none text-washi"
-          />
-          <a
-            href={site.social.instagram.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-4 inline-flex min-h-10 items-center font-sans text-[0.66rem] uppercase tracking-[0.3em] text-washi-dim transition-colors hover:text-ouro-claro"
-          >
-            {c.recognition.followers} · {site.social.instagram.handle}
-            <span className="sr-only"> {c.a11y.externalLink}</span>
-          </a>
-        </Reveal>
+          <Reveal className="flex flex-col items-center text-center" delay={0.15}>
+            <CountUp
+              to={site.social.followers.value}
+              suffix={site.social.followers.suffix}
+              className="font-display text-[clamp(4rem,3rem+5vw,7rem)] font-light leading-none text-washi"
+            />
+            <a
+              href={site.social.instagram.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-8 inline-flex min-h-10 items-center font-sans text-[0.66rem] uppercase tracking-[0.3em] text-washi-dim transition-colors hover:text-ouro-claro"
+            >
+              {c.recognition.followers} · {site.social.instagram.handle}
+              <span className="sr-only"> {c.a11y.externalLink}</span>
+            </a>
+          </Reveal>
+        </div>
 
         <div className="mx-auto mt-24 max-w-5xl">
           <h3 className="text-center font-display text-display-sm text-washi">{c.recognition.reviewsTitle}</h3>
