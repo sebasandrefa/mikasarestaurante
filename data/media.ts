@@ -162,7 +162,10 @@ export const media = {
 
 /** Vídeo de cena: toca sozinho em câmera lenta, ida e volta, só com a cena na tela. */
 export type SceneVideo = {
+  /** paisagem 1280×720 (telas largas) */
   src: string;
+  /** recorte retrato 540×720 para celular — mesma nitidez no que aparece, arquivo menor */
+  mobile: string;
   poster: string;
   /** enquadramento no corte (CSS object-position), ex.: "50% 62%" */
   position: string;
@@ -176,10 +179,14 @@ export type SceneVideo = {
  * `ffmpeg -i v.mp4 -vf "setpts=1.5*PTS,minterpolate=fps=30:mi_mode=mci:mc_mode=aobmc:me_mode=bidir:vsbmc=1" lento.mp4`
  * `ffmpeg -i lento.mp4 -filter_complex "[0:v]split[a][b];[b]reverse,trim=start_frame=1,setpts=PTS-STARTPTS[r];[a][r]concat=n=2:v=1,format=yuv420p" -an -c:v libx264 -profile:v high -level:v 4.0 -preset slow -crf 20 -tune film -x264-params ref=4:keyint=60 -movflags +faststart fogo.mp4`
  * (nível 4.0 e poucos quadros de referência: o iPhone não toca nível 5 em 720p de forma confiável)
+ * Celular: o mesmo, com `crop=540:720:X:0` antes do setpts, X = posição horizontal × 740
+ * (assim o enquadramento no celular fica igual ao do corte do vídeo largo).
+ * Nome com hash do conteúdo: /media é cache "immutable" de 1 ano — arquivo novo = nome novo.
  * Substituir por um vídeo real do restaurante quando houver (de preferência 1080p ou 4K).
  */
 export const robataFire: SceneVideo = {
-  src: "/media/robata-fogo/fogo.mp4",
+  src: "/media/robata-fogo/fogo-81d2d61f.mp4",
+  mobile: "/media/robata-fogo/fogo-m-402b0e70.mp4",
   poster: "/media/robata-fogo/poster.webp",
   position: "50% 62%",
   generatedByAI: true,
@@ -190,7 +197,8 @@ export const robataFire: SceneVideo = {
  * pelo cliente) — só clima; não é o bar do MIKASA. Mesmo preparo do robataFire.
  */
 export const barPour: SceneVideo = {
-  src: "/media/bar-whisky-pour/whisky.mp4",
+  src: "/media/bar-whisky-pour/whisky-921fb8f2.mp4",
+  mobile: "/media/bar-whisky-pour/whisky-m-6a888ddb.mp4",
   poster: "/media/bar-whisky-pour/poster.webp",
   position: "43% 70%",
   generatedByAI: true,

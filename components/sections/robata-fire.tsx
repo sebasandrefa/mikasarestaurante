@@ -29,15 +29,16 @@ export function RobataFire({ eyebrow, title, tagline }: { eyebrow: string; title
 
   return (
     <div ref={box} data-scene="robata-fire" className="relative h-[100svh] min-h-[36rem] overflow-hidden bg-[#050302]">
+      {/* o vídeo fica sempre visível (o iPhone não toca vídeo com opacity 0); quem "acende" o fogo
+          é o véu escuro por cima, que se apaga quando a brasa pega */}
+      <SceneVideo video={robataFire} box={box} />
       <motion.div
         aria-hidden
-        className="absolute inset-0"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: on ? 1 : 0 }}
+        className="pointer-events-none absolute inset-0 bg-[#050302]"
+        initial={{ opacity: 1 }}
+        animate={{ opacity: on ? 0 : 1 }}
         transition={on ? { duration: 1.6, ease: EASE, delay: reduce ? 0 : IGNITE } : { duration: 0 }}
-      >
-        <SceneVideo video={robataFire} box={box} />
-      </motion.div>
+      />
       {/* leitura do título sobre as chamas */}
       <div aria-hidden className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(5,3,2,0.85)_0%,rgba(5,3,2,0.35)_40%,transparent_62%,rgba(5,3,2,0.35)_100%)]" />
       <motion.div aria-hidden className="absolute inset-0" initial={{ opacity: 0 }} animate={{ opacity: on ? 1 : 0 }} transition={on ? { duration: 1.6, delay: reduce ? 0 : IGNITE } : { duration: 0 }}>
