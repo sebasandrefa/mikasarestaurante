@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { LayoutGroup, motion } from "motion/react";
 import { ArrowUpRight, Search, X } from "lucide-react";
 import { MediaFrame } from "@/components/media/media-frame";
+import { PHOTO_GRADE } from "@/components/menu/menu-hero";
 import { useScrollTo } from "@/components/providers/smooth-scroll";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
@@ -179,7 +180,9 @@ function DishCard({ item, lang, index, onOpen }: { item: MenuItem; lang: Locale;
       transition={{ duration: 0.9, ease: EASE, delay: (index % 4) * 0.07 }}
     >
       <button type="button" onClick={() => onOpen(item)} className="group flex h-full w-full flex-col text-left">
-        <div className="relative aspect-square w-full overflow-hidden border border-line bg-carvao">
+        <div className="relative aspect-square w-full overflow-hidden bg-carvao [&_img]:[filter:var(--mk-grade)]" style={{ ["--mk-grade" as string]: PHOTO_GRADE }}>
+          {/* cantos levemente apagados: une fotos de sessões diferentes */}
+          <span aria-hidden className="pointer-events-none absolute inset-0 z-[1] shadow-[inset_0_0_70px_rgba(10,10,11,0.55)]" />
           <MediaFrame
             asset={item.imagem}
             lang={lang}
@@ -189,7 +192,7 @@ function DishCard({ item, lang, index, onOpen }: { item: MenuItem; lang: Locale;
             className="[&_img]:transition-transform [&_img]:duration-[1400ms] [&_img]:ease-[var(--ease-mikasa)] group-hover:[&_img]:scale-[1.05]"
           />
           {signature ? (
-            <span className="absolute left-2 top-2 border border-ouro/60 bg-sumi/75 px-2 py-0.5 font-sans text-[0.55rem] uppercase tracking-[0.2em] text-ouro-claro backdrop-blur-sm">
+            <span className="absolute left-2 top-2 z-[2] border border-ouro/60 bg-sumi/75 px-2 py-0.5 font-sans text-[0.55rem] uppercase tracking-[0.2em] text-ouro-claro backdrop-blur-sm">
               {c.tags[item.tags.includes("signature") ? "signature" : "chefs-choice"]}
             </span>
           ) : null}
@@ -216,7 +219,7 @@ function DishCard({ item, lang, index, onOpen }: { item: MenuItem; lang: Locale;
 
 function CategoryItems({ items, lang, onOpen }: { items: MenuItem[]; lang: Locale; onOpen: (i: MenuItem) => void }) {
   return (
-    <ul className="grid grid-cols-2 gap-x-4 gap-y-10 sm:grid-cols-3 sm:gap-x-6 lg:grid-cols-4 lg:gap-x-8 lg:gap-y-14">
+    <ul className="grid grid-cols-2 gap-x-5 gap-y-12 sm:grid-cols-3 sm:gap-x-8 lg:grid-cols-4 lg:gap-x-12 lg:gap-y-16">
       {items.map((item, i) => (
         <DishCard key={item.id} item={item} lang={lang} index={i} onOpen={onOpen} />
       ))}
