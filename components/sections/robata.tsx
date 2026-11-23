@@ -2,10 +2,9 @@ import Link from "next/link";
 import { Embers } from "@/components/effects/embers";
 import { OffscreenPause } from "@/components/effects/offscreen-pause";
 import { MediaFrame } from "@/components/media/media-frame";
-import { BrushKanji } from "@/components/motion/brush-kanji";
 import { MaskReveal } from "@/components/motion/mask-reveal";
 import { Reveal } from "@/components/motion/reveal";
-import { SectionHeading } from "@/components/sections/section-heading";
+import { RobataFire } from "@/components/sections/robata-fire";
 import { Button } from "@/components/ui/button";
 import { getCopy } from "@/data/copy";
 import { findCategory, findItem, robataFeatured, robataGroups } from "@/data/menu";
@@ -23,7 +22,7 @@ export function Robata({ lang }: { lang: Locale }) {
   return (
     <section
       id={sectionIds.robata}
-      className="relative isolate overflow-hidden py-[var(--spacing-section)]"
+      className="relative isolate pb-[var(--spacing-section)]"
       style={{ background: "linear-gradient(180deg, #0a0a0b 0%, #120a06 18%, #160c06 60%, #0a0a0b 100%)" }}
     >
       {/* Brasa ao fundo + textura de carvão */}
@@ -36,18 +35,13 @@ export function Robata({ lang }: { lang: Locale }) {
       <Embers className="-z-10" />
       <OffscreenPause targetId={sectionIds.robata} />
 
-      <div className="mx-auto max-w-[100rem] px-[var(--spacing-gutter)]">
-        <div className="grid gap-10 lg:grid-cols-12">
-          <SectionHeading index="03" eyebrow={c.robata.eyebrow} title={c.robata.title} kanji="炎" className="lg:col-span-7" />
-          <Reveal className="self-end lg:col-span-4 lg:col-start-9" delay={0.2}>
-            <BrushKanji char="炎" className="mb-6 size-24 opacity-90 md:size-32" delay={0.2} />
-            <p className="font-display text-xl italic text-ouro-claro md:text-2xl">{c.robata.tagline}</p>
-          </Reveal>
-        </div>
+      {/* CENA 3 — protagonista: a rolagem acende o fogo */}
+      <RobataFire eyebrow={c.robata.eyebrow} title={c.robata.title} tagline={c.robata.tagline} />
 
-        {/* Destaque — Tomahawk */}
+      <div className="relative mx-auto max-w-[100rem] px-[var(--spacing-gutter)]">
+        {/* Destaque — Tomahawk: aparece de dentro da fumaça */}
         {tomahawk ? (
-          <div className="mt-20 grid items-end gap-10 lg:mt-28 lg:grid-cols-12">
+          <div className="grid items-end gap-10 pt-16 lg:grid-cols-12 lg:pt-24">
             <MaskReveal className="relative aspect-[4/3] lg:col-span-8">
               <div data-cursor={c.cursor.view} className="size-full">
                 <MediaFrame asset={tomahawk.imagem} lang={lang} kanji="炎" tone="warm" sizes="(min-width:1024px) 66vw, 100vw" />

@@ -160,6 +160,21 @@ export const media = {
   bar03: photos.barHatsu,
 } satisfies Record<string, MediaAsset>;
 
+/**
+ * Cena "A brasa acorda" (Robata): quadros de um vídeo de wagyu na brasa, desenhados
+ * conforme a rolagem. ATENÇÃO: vídeo GERADO POR IA (enviado pelo cliente) — é só clima,
+ * não é a grelha do MIKASA; não usar legenda que diga o contrário.
+ * Substituir pelos quadros de um vídeo real do restaurante quando houver
+ * (câmera fixa, do acender à chama alta): `ffmpeg -i video.mp4 -vf fps=12 -quality 80 d/%02d.webp`
+ * e, para o celular, um recorte vertical (`crop=480:720:400:0`).
+ */
+export const robataFire = {
+  desktop: "/media/robata-fogo/d",
+  mobile: "/media/robata-fogo/m",
+  frames: 95,
+  generatedByAI: true,
+} as const;
+
 export type GalleryItem = {
   asset: MediaAsset;
   category: "platos" | "sushi" | "robata" | "bebidas" | "ambiente" | "detalles" | "chef" | "fuego" | "postres";
