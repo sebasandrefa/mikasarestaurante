@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useRef } from "react";
-import { motion, useScroll, useTransform } from "motion/react";
+import { motion } from "motion/react";
 import { useFrameSequence } from "@/components/media/use-frame-sequence";
 import { barPour } from "@/data/media";
 import { withBasePath } from "@/lib/i18n";
@@ -10,29 +10,22 @@ import { EASE } from "@/lib/motion";
 
 export type BarHeroPhoto = { src: string; alt: string };
 
-/** faixa da rolagem (0–1) em que o whisky é servido */
-const FROM = 0.04;
-const TO = 0.84;
-
 /**
  * Entrada do /bar — "Depois do ocaso".
- * Abre num âmbar de pôr do sol que baixa para a luz do bar; a tela fica presa e a rolagem
- * serve o whisky sobre a esfera de gelo, quadro a quadro (vídeo `data/media.ts` → barPour).
+ * Abre num âmbar de pôr do sol que baixa para a luz do bar; o whisky é servido sozinho sobre
+ * a esfera de gelo, em câmera lenta, para frente e para trás, só enquanto a cena está na tela
+ * (vídeo `data/media.ts` → barPour).
  * Em seguida, as três fotos reais do bar sobem em tríptico.
  */
 export function BarHero({ eyebrow, title, intro, line, photos }: { eyebrow: string; title: string; intro: string; line: string; photos: BarHeroPhoto[] }) {
   const box = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
-  const { scrollYProgress: p } = useScroll({ target: box, offset: ["start start", "end end"] });
-  useFrameSequence({ seq: barPour, box, canvas, progress: p, from: FROM, to: TO, anchorX: 0.42, anchorY: 0.7, eager: true });
-
-  const textY = useTransform(p, [0, 0.6], ["0vh", "-6vh"]);
-  const end = useTransform(p, [0.86, 1], [0, 1]);
+  useFrameSequence({ seq: barPour, box, canvas, duration: 12, anchorX: 0.42, anchorY: 0.7, eager: true });
 
   return (
     <>
-      <div ref={box} className="relative h-[230vh] md:h-[280vh]">
-        <div className="sticky top-0 h-[100svh] overflow-hidden bg-sumi">
+      <div ref={box} className="relative">
+        <div className="relative h-[100svh] min-h-[36rem] overflow-hidden bg-sumi">
           {/* o whisky (aparece quando o "sol" se põe) */}
           <motion.canvas
             ref={canvas}
@@ -54,8 +47,7 @@ export function BarHero({ eyebrow, title, intro, line, photos }: { eyebrow: stri
           {/* leitura do texto: escurece o lado do título (direita no PC, topo no celular) */}
           <div aria-hidden className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(10,10,11,0.9)_0%,rgba(10,10,11,0.55)_32%,transparent_55%)] md:bg-[linear-gradient(270deg,rgba(10,10,11,0.92)_0%,rgba(10,10,11,0.6)_34%,transparent_58%)]" />
 
-          <motion.div
-            style={{ y: textY }}
+          <div
             className="relative z-10 mx-auto flex h-full max-w-[100rem] flex-col items-center px-[var(--spacing-gutter)] pt-[calc(var(--header-h)+2.5rem)] text-center md:items-end md:justify-center md:pt-0 md:text-right"
           >
             <div className="md:max-w-[min(34rem,40vw)]">
@@ -94,9 +86,10 @@ export function BarHero({ eyebrow, title, intro, line, photos }: { eyebrow: stri
                 {intro}
               </motion.p>
             </div>
-          </motion.div>
+          </div>
 
-          <motion.div aria-hidden style={{ opacity: end }} className="pointer-events-none absolute inset-0 z-20 bg-sumi" />
+          {/* passagem suave para o tríptico */}
+          <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-32 bg-gradient-to-t from-sumi to-transparent" />
         </div>
       </div>
 
