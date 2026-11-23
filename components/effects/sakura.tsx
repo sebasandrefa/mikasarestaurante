@@ -8,7 +8,7 @@ import { isPerfLite, PERF_LITE_EVENT } from "@/lib/perf";
 import { withBasePath } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
-type Petal = { x: number; y: number; vx: number; vy: number; rot: number; vr: number; flip: number; vf: number; s: number; sprite: number; a: number };
+type Petal = { x: number; y: number; vx: number; vy: number; kx: number; ky: number; rot: number; vr: number; flip: number; vf: number; s: number; sprite: number; a: number };
 
 const PINKS: [string, string][] = [
   ["#f8dde5", "#e7a9bb"],
@@ -67,6 +67,8 @@ function Petals({ className }: { className?: string }) {
       y: initial ? Math.random() * h : h * (Math.random() * 0.35) - 20,
       vx: -(0.12 + Math.random() * 0.32),
       vy: 0.22 + Math.random() * 0.38,
+      kx: 0,
+      ky: 0,
       rot: Math.random() * Math.PI * 2,
       vr: (Math.random() - 0.5) * 0.012,
       flip: Math.random() * Math.PI * 2,
@@ -76,6 +78,24 @@ function Petals({ className }: { className?: string }) {
       a: 0,
     });
     const ps: Petal[] = Array.from({ length: count }, () => spawn(true));
+
+    // o cursor sopra as pétalas por onde passa (só com mouse; nada muda no celular)
+    const pointer = { x: -9999, y: -9999, vx: 0, vy: 0, live: false };
+    const fine = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+    const onMove = (e: PointerEvent) => {
+      const r = canvas.getBoundingClientRect();
+      const x = e.clientX - r.left;
+      const y = e.clientY - r.top;
+      if (pointer.live) {
+        pointer.vx = pointer.vx * 0.5 + (x - pointer.x) * 0.5;
+        pointer.vy = pointer.vy * 0.5 + (y - pointer.y) * 0.5;
+      }
+      pointer.x = x;
+      pointer.y = y;
+      pointer.live = true;
+    };
+    if (fine) window.addEventListener("pointermove", onMove, { passive: true });
+    const R = 150;
 
     let raf = 0;
     let running = false;
@@ -88,10 +108,26 @@ function Petals({ className }: { className?: string }) {
       t += k;
       ctx.clearRect(0, 0, w, h);
       const wind = Math.sin(t / 420) * 0.18;
+      const speed = Math.hypot(pointer.vx, pointer.vy);
       for (let i = 0; i < ps.length; i++) {
         const p = ps[i];
-        p.x += (p.vx + wind + Math.sin((t + i * 37) / 90) * 0.18) * k;
-        p.y += p.vy * k;
+        if (speed > 0.5) {
+          const dx = p.x - pointer.x;
+          const dy = p.y - pointer.y;
+          const d = Math.hypot(dx, dy);
+          if (d < R) {
+            // empurra na direção do movimento do cursor, mais forte perto dele
+            const f = (1 - d / R) * Math.min(speed, 40) * 0.012;
+            p.kx += (pointer.vx / speed) * f * 6 + (dx / (d || 1)) * f * 2;
+            p.ky += (pointer.vy / speed) * f * 6 + (dy / (d || 1)) * f * 2;
+            p.vr += (Math.random() - 0.5) * f * 0.02;
+          }
+        }
+        p.kx *= Math.pow(0.95, k);
+        p.ky *= Math.pow(0.95, k);
+        p.vr = Math.max(-0.05, Math.min(0.05, p.vr));
+        p.x += (p.vx + p.kx + wind + Math.sin((t + i * 37) / 90) * 0.18) * k;
+        p.y += (p.vy + p.ky) * k;
         p.rot += p.vr * k;
         p.flip += p.vf * k;
         p.a = Math.min(1, p.a + 0.01 * k);
@@ -104,8 +140,10 @@ function Petals({ className }: { className?: string }) {
         ctx.scale(p.s, p.s * (0.5 + 0.5 * Math.abs(Math.cos(p.flip))));
         ctx.drawImage(sp, -sp.width / 2, -sp.height / 2);
         ctx.restore();
-        if (p.y > h + 20 || p.x < -30) ps[i] = spawn(false);
+        if (p.y > h + 20 || p.x < -30 || p.x > w + 60 || p.y < -80) ps[i] = spawn(false);
       }
+      pointer.vx *= 0.85;
+      pointer.vy *= 0.85;
       raf = requestAnimationFrame(tick);
     };
 
@@ -125,6 +163,7 @@ function Petals({ className }: { className?: string }) {
     if (isPerfLite()) lite();
     window.addEventListener(PERF_LITE_EVENT, lite);
     return () => {
+      window.removeEventListener("pointermove", onMove);
       window.removeEventListener(PERF_LITE_EVENT, lite);
       io.disconnect();
       cancelAnimationFrame(raf);

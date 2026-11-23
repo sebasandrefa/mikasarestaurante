@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { motion, useScroll, useTransform } from "motion/react";
-import { Emblem } from "@/components/brand/logo";
+import { motion, useMotionValue, useScroll, useSpring, useTransform } from "motion/react";
+import { Moon } from "@/components/effects/moon";
 import { OffscreenPause } from "@/components/effects/offscreen-pause";
 import { SakuraTree } from "@/components/effects/sakura";
 import { MediaFrame } from "@/components/media/media-frame";
@@ -15,6 +15,7 @@ import { media } from "@/data/media";
 import { localePath, type Locale } from "@/lib/i18n";
 import { EASE, useReducedMotion } from "@/lib/motion";
 import { homeAnchor, sectionIds } from "@/lib/nav";
+import { useIntroReady } from "@/lib/hooks/use-intro-ready";
 
 export function Hero({ lang }: { lang: Locale }) {
   const c = getCopy(lang);
@@ -32,6 +33,29 @@ export function Hero({ lang }: { lang: Locale }) {
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
   const y = useTransform(scrollYProgress, [0, 1], ["0%", "18%"]);
   const fade = useTransform(scrollYProgress, [0, 0.7], [1, 0]);
+  // a lua desce mais devagar que a página ao rolar (profundidade)
+  const moonScroll = useTransform(scrollYProgress, [0, 1], ["0%", "40%"]);
+  // a lua nasce quando a intro sai (por baixo dela ninguém veria)
+  const introDone = useIntroReady();
+
+  // profundidade com o mouse (só computador): lua e árvore se deslocam em sentidos opostos
+  const px = useMotionValue(0);
+  const py = useMotionValue(0);
+  const sx = useSpring(px, { stiffness: 40, damping: 18, mass: 0.8 });
+  const sy = useSpring(py, { stiffness: 40, damping: 18, mass: 0.8 });
+  const moonX = useTransform(sx, (v) => v * -26);
+  const moonY = useTransform(sy, (v) => v * -18);
+  const treeX = useTransform(sx, (v) => v * 12);
+  const treeY = useTransform(sy, (v) => v * 8);
+  useEffect(() => {
+    if (reduce || !window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+    const move = (e: PointerEvent) => {
+      px.set(e.clientX / window.innerWidth - 0.5);
+      py.set(e.clientY / window.innerHeight - 0.5);
+    };
+    window.addEventListener("pointermove", move, { passive: true });
+    return () => window.removeEventListener("pointermove", move);
+  }, [reduce, px, py]);
 
   const asset = media.heroLoop.available ? media.heroLoop : media.heroPoster;
 
@@ -67,23 +91,28 @@ export function Hero({ lang }: { lang: Locale }) {
       <div aria-hidden className="absolute inset-x-0 bottom-0 h-[65%] bg-gradient-to-t from-sumi via-sumi/70 to-transparent" />
       <div aria-hidden className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-sumi/80 to-transparent" />
 
-      {/* Cerejeira à direita com pétalas caindo (acima dos véus, abaixo do texto).
-          As pétalas só começam depois que a intro sai (ver SakuraTree). */}
-      {/* sem parallax: acompanha o scroll nativo (parallax aqui fazia as pétalas tremerem) */}
-      <div className="absolute inset-0 overflow-hidden">
-        <SakuraTree className="top-[calc(var(--header-h)*0.6)] h-[46%] opacity-60 sm:h-[64%] sm:opacity-80 lg:h-[calc(100%-var(--header-h)*0.6)] lg:opacity-100" />
-      </div>
-
-      {/* Emblema oficial ao centro (substitui o 匠 quase invisível) */}
-      <motion.div
-        aria-hidden
-        className="pointer-events-none absolute left-1/2 top-[44%] -translate-x-1/2 -translate-y-1/2"
-        initial={{ opacity: 0, scale: 0.92 }}
-        animate={ready ? { opacity: 1, scale: 1 } : undefined}
-        transition={{ duration: 2.4, ease: EASE, delay: 0.3 }}
-      >
-        <Emblem className="mk-breathe w-[clamp(170px,22vw,330px)]" />
+      {/* Lua cheia dourada atrás da cerejeira: nasce devagar quando a intro sai */}
+      <motion.div aria-hidden className="pointer-events-none absolute inset-0" style={{ y: reduce ? 0 : moonScroll }}>
+        <motion.div className="absolute right-[9vw] top-[calc(var(--header-h)+0.25rem)] sm:right-[12vw] sm:top-[calc(var(--header-h)+2rem)] lg:right-[11vw] lg:top-[17%] 2xl:right-[14vw]" style={{ x: moonX, y: moonY }}>
+          <motion.div
+            initial={{ opacity: 0, y: reduce ? 0 : 70 }}
+            animate={introDone ? { opacity: 1, y: 0 } : undefined}
+            transition={{ duration: 3.4, ease: [0.16, 1, 0.3, 1], delay: 0.2 }}
+          >
+            <Moon className="w-[clamp(118px,34vw,150px)] sm:w-[clamp(200px,30vw,300px)] lg:w-[clamp(280px,22vw,440px)] [@media(max-width:639px)_and_(max-height:620px)]:w-[96px]" />
+          </motion.div>
+        </motion.div>
       </motion.div>
+
+      {/* Cerejeira à direita com pétalas caindo (acima dos véus e da lua, abaixo do texto).
+          As pétalas só começam depois que a intro sai (ver SakuraTree). */}
+      {/* sem parallax de scroll: acompanha o scroll nativo (parallax aqui fazia as pétalas tremerem) */}
+      <div className="absolute inset-0 overflow-hidden">
+        {/* sobra de 16px nas bordas: o deslocamento com o mouse nunca mostra a borda da camada */}
+        <motion.div className="absolute -inset-4" style={{ x: treeX, y: treeY }}>
+          <SakuraTree className="top-[calc(var(--header-h)*0.6+1rem)] h-[46%] opacity-75 sm:h-[64%] sm:opacity-85 lg:h-[calc(100%-var(--header-h)*0.6)] lg:opacity-100" />
+        </motion.div>
+      </div>
 
       <motion.div
         style={{ opacity: reduce ? 1 : fade }}
@@ -99,6 +128,8 @@ export function Hero({ lang }: { lang: Locale }) {
           text={c.hero.headline}
           play={ready}
           delay={0.15}
+          accentLast={2}
+          accentClassName="mk-sheen pr-[0.08em] italic"
           className="max-w-[20ch] font-display text-display-xl font-light text-washi short:max-w-[24ch] short:text-[clamp(1.75rem,9vh,2.6rem)]"
         />
 
