@@ -15,7 +15,7 @@ export function Footer({ lang }: { lang: Locale }) {
   const ext = { target: "_blank", rel: "noopener noreferrer" } as const;
 
   return (
-    <footer className="relative border-t border-line bg-sumi">
+    <footer className="relative overflow-x-clip border-t border-line bg-sumi">
       <div className="mx-auto max-w-[100rem] px-[var(--spacing-gutter)] pb-[calc(6rem+env(safe-area-inset-bottom))] pt-24 md:pb-16">
         <div className="grid gap-14 md:grid-cols-12">
           <div className="md:col-span-4">
