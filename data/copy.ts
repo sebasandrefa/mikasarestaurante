@@ -213,6 +213,7 @@ const es = {
     intro: "Japanese Nikkei Cuisine. Precios en USD.",
     search: "Buscar en la carta",
     searchPlaceholder: "Buscar un plato…",
+    index: "Índice",
     filters: "Filtros",
     clear: "Limpiar",
     noResults: "No encontramos platos con esos criterios.",
@@ -242,6 +243,7 @@ const es = {
     promos: "Promociones",
     each: "c/u",
     responsibly: "Beba con moderación.",
+    groups: { cocteles: "Mixología", destilados: "Destilados", vinos: "Vinos", otros: "Otras bebidas" },
   },
   tags: {
     signature: "Signature",
@@ -462,6 +464,7 @@ const en: Copy = {
     intro: "Japanese Nikkei Cuisine. Prices in USD.",
     search: "Search the menu",
     searchPlaceholder: "Search a dish…",
+    index: "Contents",
     filters: "Filters",
     clear: "Clear",
     noResults: "No dishes match those criteria.",
@@ -491,6 +494,7 @@ const en: Copy = {
     promos: "Promotions",
     each: "each",
     responsibly: "Please drink responsibly.",
+    groups: { cocteles: "Mixology", destilados: "Spirits", vinos: "Wines", otros: "Other drinks" },
   },
   tags: {
     signature: "Signature",

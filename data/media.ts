@@ -175,6 +175,18 @@ export const robataFire = {
   generatedByAI: true,
 } as const;
 
+/**
+ * Entrada do Bar: quadros de um vídeo de whisky servido sobre gelo, desenhados conforme a
+ * rolagem. ATENÇÃO: vídeo GERADO POR IA (enviado pelo cliente) — só clima; não é o bar do MIKASA.
+ * Mesmo formato do robataFire (12 fps, 1280×720 no PC; recorte `crop=480:720:330:0` no celular).
+ */
+export const barPour = {
+  desktop: "/media/bar-whisky-pour/d",
+  mobile: "/media/bar-whisky-pour/m",
+  frames: 95,
+  generatedByAI: true,
+} as const;
+
 export type GalleryItem = {
   asset: MediaAsset;
   category: "platos" | "sushi" | "robata" | "bebidas" | "ambiente" | "detalles" | "chef" | "fuego" | "postres";
