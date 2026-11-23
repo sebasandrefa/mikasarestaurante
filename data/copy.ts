@@ -125,6 +125,11 @@ const es = {
       postres: "Postres",
     },
   },
+  place: {
+    eyebrow: "El lugar",
+    title: "Nuestra terraza, al caer la noche.",
+    cta: "Reservar mesa",
+  },
   recognition: {
     eyebrow: "Reconocimientos",
     title: "4 Years of Excellence",
@@ -376,6 +381,11 @@ const en: Copy = {
       fuego: "Fire",
       postres: "Desserts",
     },
+  },
+  place: {
+    eyebrow: "The place",
+    title: "Our terrace, as night falls.",
+    cta: "Book a table",
   },
   recognition: {
     eyebrow: "Recognition",

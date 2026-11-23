@@ -9,6 +9,7 @@ import { Philosophy } from "@/components/sections/philosophy";
 import { Recognition } from "@/components/sections/recognition";
 import { Reservation } from "@/components/sections/reservation";
 import { Robata } from "@/components/sections/robata";
+import { ThePlace } from "@/components/sections/the-place";
 import { hasLocale } from "@/lib/i18n";
 import { getOmakaseFeatures } from "@/lib/omakase";
 
@@ -26,6 +27,7 @@ export default async function Home({ params }: PageProps<"/[lang]">) {
       <BarPreview lang={lang} />
       <Gallery lang={lang} />
       <Recognition lang={lang} />
+      <ThePlace lang={lang} />
       <Reservation lang={lang} />
       <Location lang={lang} />
     </>
