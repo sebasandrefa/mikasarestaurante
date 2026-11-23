@@ -58,6 +58,14 @@ export function SceneVideo({
     // se o play() chegou antes dos dados (comum no celular), tenta de novo quando der
     v.addEventListener("loadeddata", play);
     v.addEventListener("canplay", play);
+    // navegador que bloqueia vídeo automático (modo economia de bateria, Safari "nunca reproduzir"):
+    // o primeiro toque/clique/tecla na página libera o play
+    const unlock = () => {
+      tries = 0;
+      play();
+    };
+    const gesture = { capture: true, passive: true } as const;
+    for (const ev of ["pointerdown", "touchend", "keydown"]) window.addEventListener(ev, unlock, gesture);
     // baixar antes de chegar
     const near = new IntersectionObserver(
       ([e]) => {
@@ -89,6 +97,7 @@ export function SceneVideo({
       near.disconnect();
       seen.disconnect();
       clearTimeout(retry);
+      for (const ev of ["pointerdown", "touchend", "keydown"]) window.removeEventListener(ev, unlock, gesture);
       v.removeEventListener("loadeddata", play);
       v.removeEventListener("canplay", play);
     };
