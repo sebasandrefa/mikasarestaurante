@@ -189,7 +189,7 @@ function DishCard({ item, lang, index, onOpen }: { item: MenuItem; lang: Locale;
             fallbackLabel={item.nome[lang]}
             kanji="匠"
             sizes="(min-width:1024px) 22vw, (min-width:640px) 31vw, 46vw"
-            className="[&_img]:transition-transform [&_img]:duration-[1400ms] [&_img]:ease-[var(--ease-mikasa)] group-hover:[&_img]:scale-[1.05]"
+            className="[&_img]:scale-100 [&_img]:will-change-transform [&_img]:backface-hidden [&_img]:transition-transform [&_img]:duration-[1400ms] [&_img]:ease-[var(--ease-mikasa)] group-hover:[&_img]:scale-[1.05]"
           />
           {signature ? (
             <span className="absolute left-2 top-2 z-[2] border border-ouro/60 bg-sumi/75 px-2 py-0.5 font-sans text-[0.55rem] uppercase tracking-[0.2em] text-ouro-claro backdrop-blur-sm">
