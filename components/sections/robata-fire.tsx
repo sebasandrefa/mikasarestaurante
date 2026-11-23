@@ -4,7 +4,7 @@ import { useRef } from "react";
 import { motion, useInView } from "motion/react";
 import { Embers } from "@/components/effects/embers";
 import { robataFire } from "@/data/media";
-import { useFrameSequence } from "@/components/media/use-frame-sequence";
+import { SceneVideo } from "@/components/media/scene-video";
 import { EASE, useReducedMotion } from "@/lib/motion";
 
 /**
@@ -12,7 +12,7 @@ import { EASE, useReducedMotion } from "@/lib/motion";
  * Quando a cena entra na tela, uma faísca cai, a brasa pega e a chama sobe; o título
  * "esquenta" do washi para a brasa, palavra por palavra. Depois o fogo segue sozinho,
  * em câmera lenta, para frente e para trás (vídeo `data/media.ts` → robataFire) —
- * só enquanto a cena está na tela.
+ * só enquanto a cena está na tela. Ao sair, tudo volta ao início.
  */
 
 /** quando a faísca chega à grelha e o fogo acende (s) */
@@ -20,27 +20,27 @@ const IGNITE = 1.1;
 
 export function RobataFire({ eyebrow, title, tagline }: { eyebrow: string; title: string; tagline: string }) {
   const box = useRef<HTMLDivElement>(null);
-  const canvas = useRef<HTMLCanvasElement>(null);
   const reduce = useReducedMotion();
-  const lit = useInView(box, { once: true, amount: 0.4 });
-  useFrameSequence({ seq: robataFire, box, canvas, duration: 13, anchorY: 0.62 });
+  // sem "once": ao sair e voltar, a cena acende de novo desde o início
+  const lit = useInView(box, { amount: 0.35 });
 
   const words = title.split(" ");
   const on = lit || reduce;
 
   return (
     <div ref={box} data-scene="robata-fire" className="relative h-[100svh] min-h-[36rem] overflow-hidden bg-[#050302]">
-      <motion.canvas
-        ref={canvas}
+      <motion.div
         aria-hidden
-        className="absolute inset-0 size-full"
+        className="absolute inset-0"
         initial={{ opacity: 0 }}
         animate={{ opacity: on ? 1 : 0 }}
-        transition={{ duration: 1.6, ease: EASE, delay: reduce ? 0 : IGNITE }}
-      />
+        transition={on ? { duration: 1.6, ease: EASE, delay: reduce ? 0 : IGNITE } : { duration: 0 }}
+      >
+        <SceneVideo video={robataFire} box={box} />
+      </motion.div>
       {/* leitura do título sobre as chamas */}
       <div aria-hidden className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(5,3,2,0.85)_0%,rgba(5,3,2,0.35)_40%,transparent_62%,rgba(5,3,2,0.35)_100%)]" />
-      <motion.div aria-hidden className="absolute inset-0" initial={{ opacity: 0 }} animate={{ opacity: on ? 1 : 0 }} transition={{ duration: 1.6, delay: reduce ? 0 : IGNITE }}>
+      <motion.div aria-hidden className="absolute inset-0" initial={{ opacity: 0 }} animate={{ opacity: on ? 1 : 0 }} transition={on ? { duration: 1.6, delay: reduce ? 0 : IGNITE } : { duration: 0 }}>
         <Embers count={30} />
       </motion.div>
       {/* faísca: cai do alto até a grelha e se apaga quando a brasa pega */}
@@ -49,8 +49,8 @@ export function RobataFire({ eyebrow, title, tagline }: { eyebrow: string; title
           aria-hidden
           className="absolute left-1/2 top-0 -ml-1 size-2 rounded-full bg-[#ffd9a0] shadow-[0_0_14px_4px_rgba(255,170,90,0.75),0_0_42px_12px_rgba(217,119,43,0.35)]"
           initial={{ y: "8vh", opacity: 0, scale: 1 }}
-          animate={lit ? { y: ["8vh", "64vh", "64vh"], opacity: [0, 1, 1, 0], scale: [1, 1, 4] } : undefined}
-          transition={{ duration: IGNITE + 0.5, ease: "easeIn", times: [0, 0.7, 1] }}
+          animate={lit ? { y: ["8vh", "64vh", "64vh"], opacity: [0, 1, 1, 0], scale: [1, 1, 4] } : { y: "8vh", opacity: 0, scale: 1 }}
+          transition={lit ? { duration: IGNITE + 0.5, ease: "easeIn", times: [0, 0.7, 1] } : { duration: 0 }}
         />
       ) : null}
 
@@ -91,8 +91,8 @@ function HotWord({ word, lit, delay }: { word: string; lit: boolean; delay: numb
     <motion.span
       className="inline-block whitespace-nowrap"
       initial={{ color: "#efe9df", textShadow: "0 0 0px rgba(240,140,60,0)" }}
-      animate={lit ? { color: ["#efe9df", "#e6cf96", "#f0a25a"], textShadow: "0 0 34px rgba(240,140,60,0.55)" } : undefined}
-      transition={{ duration: 1.4, ease: "easeOut", delay }}
+      animate={lit ? { color: ["#efe9df", "#e6cf96", "#f0a25a"], textShadow: "0 0 34px rgba(240,140,60,0.55)" } : { color: "#efe9df", textShadow: "0 0 0px rgba(240,140,60,0)" }}
+      transition={lit ? { duration: 1.4, ease: "easeOut", delay } : { duration: 0 }}
     >
       {word}{" "}
     </motion.span>

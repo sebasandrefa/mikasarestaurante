@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useRef } from "react";
 import { motion } from "motion/react";
-import { useFrameSequence } from "@/components/media/use-frame-sequence";
+import { SceneVideo } from "@/components/media/scene-video";
 import { barPour } from "@/data/media";
 import { withBasePath } from "@/lib/i18n";
 import { EASE } from "@/lib/motion";
@@ -14,27 +14,26 @@ export type BarHeroPhoto = { src: string; alt: string };
  * Entrada do /bar — "Depois do ocaso".
  * Abre num âmbar de pôr do sol que baixa para a luz do bar; o whisky é servido sozinho sobre
  * a esfera de gelo, em câmera lenta, para frente e para trás, só enquanto a cena está na tela
- * (vídeo `data/media.ts` → barPour).
+ * (vídeo `data/media.ts` → barPour). Ao sair da cena, o vídeo volta ao início.
  * Em seguida, as três fotos reais do bar sobem em tríptico.
  */
 export function BarHero({ eyebrow, title, intro, line, photos }: { eyebrow: string; title: string; intro: string; line: string; photos: BarHeroPhoto[] }) {
   const box = useRef<HTMLDivElement>(null);
-  const canvas = useRef<HTMLCanvasElement>(null);
-  useFrameSequence({ seq: barPour, box, canvas, duration: 12, anchorX: 0.42, anchorY: 0.7, eager: true });
 
   return (
     <>
       <div ref={box} className="relative">
         <div className="relative h-[100svh] min-h-[36rem] overflow-hidden bg-sumi">
           {/* o whisky (aparece quando o "sol" se põe) */}
-          <motion.canvas
-            ref={canvas}
+          <motion.div
             aria-hidden
-            className="absolute inset-0 size-full"
+            className="absolute inset-0"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 2.4, ease: EASE, delay: 0.3 }}
-          />
+          >
+            <SceneVideo video={barPour} box={box} eager />
+          </motion.div>
           {/* ocaso: o âmbar desce atrás do horizonte e some */}
           <motion.div
             aria-hidden

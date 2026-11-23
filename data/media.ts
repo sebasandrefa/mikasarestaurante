@@ -160,32 +160,40 @@ export const media = {
   bar03: photos.barHatsu,
 } satisfies Record<string, MediaAsset>;
 
-/**
- * Cena "A brasa acorda" (Robata): quadros de um vídeo de wagyu na brasa, desenhados
- * conforme a rolagem. ATENÇÃO: vídeo GERADO POR IA (enviado pelo cliente) — é só clima,
- * não é a grelha do MIKASA; não usar legenda que diga o contrário.
- * Substituir pelos quadros de um vídeo real do restaurante quando houver
- * (câmera fixa, do acender à chama alta): `ffmpeg -i video.mp4 -vf fps=12 -quality 80 d/%02d.webp`
- * e, para o celular, um recorte vertical (`crop=480:720:400:0`).
- */
-export const robataFire = {
-  desktop: "/media/robata-fogo/d",
-  mobile: "/media/robata-fogo/m",
-  frames: 95,
-  generatedByAI: true,
-} as const;
+/** Vídeo de cena: toca sozinho em câmera lenta, ida e volta, só com a cena na tela. */
+export type SceneVideo = {
+  src: string;
+  poster: string;
+  /** enquadramento no corte (CSS object-position), ex.: "50% 62%" */
+  position: string;
+  generatedByAI: boolean;
+};
 
 /**
- * Entrada do Bar: quadros de um vídeo de whisky servido sobre gelo, desenhados conforme a
- * rolagem. ATENÇÃO: vídeo GERADO POR IA (enviado pelo cliente) — só clima; não é o bar do MIKASA.
- * Mesmo formato do robataFire (12 fps, 1280×720 no PC; recorte `crop=480:720:330:0` no celular).
+ * Cena "A brasa acorda" (Robata): wagyu na brasa. ATENÇÃO: vídeo GERADO POR IA (enviado pelo
+ * cliente) — é só clima, não é a grelha do MIKASA; não usar legenda que diga o contrário.
+ * Fonte 1280×720 a 24 fps → câmera lenta 1.5x interpolada a 30 fps + ida e volta no mesmo arquivo:
+ * `ffmpeg -i v.mp4 -vf "setpts=1.5*PTS,minterpolate=fps=30:mi_mode=mci:mc_mode=aobmc:me_mode=bidir:vsbmc=1" lento.mp4`
+ * `ffmpeg -i lento.mp4 -filter_complex "[0:v]split[a][b];[b]reverse,trim=start_frame=1,setpts=PTS-STARTPTS[r];[a][r]concat=n=2:v=1,format=yuv420p" -an -c:v libx264 -crf 20 -preset veryslow -tune film -movflags +faststart fogo.mp4`
+ * Substituir por um vídeo real do restaurante quando houver (de preferência 1080p ou 4K).
  */
-export const barPour = {
-  desktop: "/media/bar-whisky-pour/d",
-  mobile: "/media/bar-whisky-pour/m",
-  frames: 95,
+export const robataFire: SceneVideo = {
+  src: "/media/robata-fogo/fogo.mp4",
+  poster: "/media/robata-fogo/poster.webp",
+  position: "50% 62%",
   generatedByAI: true,
-} as const;
+};
+
+/**
+ * Entrada do Bar: whisky servido sobre a esfera de gelo. ATENÇÃO: vídeo GERADO POR IA (enviado
+ * pelo cliente) — só clima; não é o bar do MIKASA. Mesmo preparo do robataFire.
+ */
+export const barPour: SceneVideo = {
+  src: "/media/bar-whisky-pour/whisky.mp4",
+  poster: "/media/bar-whisky-pour/poster.webp",
+  position: "43% 70%",
+  generatedByAI: true,
+};
 
 export type GalleryItem = {
   asset: MediaAsset;
