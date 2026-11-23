@@ -49,7 +49,7 @@ export function Gallery({ lang }: { lang: Locale }) {
                 data-cursor={c.cursor.open}
               >
                 <MaskReveal className={cn("relative w-full", ratioCls[item.ratio])} delay={(i % 3) * 0.08}>
-                  <div className="size-full scale-100 will-change-transform backface-hidden transition-transform duration-[1400ms] ease-[var(--ease-mikasa)] group-hover:scale-[1.03]">
+                  <div className="size-full scale-100 transition-transform [@media(hover:hover)]:will-change-transform duration-[1400ms] ease-[var(--ease-mikasa)] group-hover:scale-[1.03]">
                     <MediaFrame asset={item.asset} lang={lang} sizes="(min-width:1024px) 33vw, (min-width:640px) 50vw, 100vw" />
                   </div>
                 </MaskReveal>
