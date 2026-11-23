@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { BarExplorer } from "@/components/bar/bar-explorer";
-import { PageHero } from "@/components/sections/page-hero";
+import { BarHero } from "@/components/bar/bar-hero";
+import { OriginalNote } from "@/components/sections/original-note";
+import { media } from "@/data/media";
 import { getCopy } from "@/data/copy";
 import { site } from "@/data/site";
 import { hasLocale } from "@/lib/i18n";
@@ -20,16 +22,14 @@ export default async function BarPage({ params }: PageProps<"/[lang]/bar">) {
   const c = getCopy(lang);
   return (
     <>
-      <PageHero
+      <BarHero
         eyebrow={c.barPage.eyebrow}
         title={c.barPage.title}
+        line={c.barPreview.title}
         intro={c.barPage.intro}
-        kanji="酒"
-        tone="warm"
-        original={{ href: site.menus.bar.flipbook, label: c.barPage.original }}
-        notice={c.barPage.notice}
-        externalLabel={c.a11y.externalLink}
+        photos={[media.bar01, media.bar03, media.bar02].map((m) => ({ src: m.src, alt: m.alt[lang] }))}
       />
+      <OriginalNote notice={c.barPage.notice} original={{ href: site.menus.bar.flipbook, label: c.barPage.original }} externalLabel={c.a11y.externalLink} />
       <BarExplorer lang={lang} />
     </>
   );

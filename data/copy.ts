@@ -242,6 +242,7 @@ const es = {
     promos: "Promociones",
     each: "c/u",
     responsibly: "Beba con moderación.",
+    groups: { cocteles: "Mixología", destilados: "Destilados", vinos: "Vinos", otros: "Otras bebidas" },
   },
   tags: {
     signature: "Signature",
@@ -491,6 +492,7 @@ const en: Copy = {
     promos: "Promotions",
     each: "each",
     responsibly: "Please drink responsibly.",
+    groups: { cocteles: "Mixology", destilados: "Spirits", vinos: "Wines", otros: "Other drinks" },
   },
   tags: {
     signature: "Signature",
