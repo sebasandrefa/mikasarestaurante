@@ -242,8 +242,8 @@ export const placePhotos = {
  * ampliados 4x (Real-ESRGAN) e com fade nas pontas para o loop. Celular: recorte retrato.
  */
 export const placeVideo: SceneVideo = {
-  src: "/media/lugar/lugar-HASH.mp4",
-  mobile: "/media/lugar/lugar-m-HASHM.mp4",
+  src: "/media/lugar/lugar-c83721bb.mp4",
+  mobile: "/media/lugar/lugar-m-d13c1d6e.mp4",
   poster: "/media/lugar/poster.webp",
   position: "50% 50%",
   generatedByAI: false,
