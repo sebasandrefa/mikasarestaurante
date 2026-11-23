@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { motion, useMotionValueEvent, useScroll, useTransform, type MotionValue } from "motion/react";
+import { useRef } from "react";
+import { motion, useScroll, useTransform, type MotionValue } from "motion/react";
 import { Embers } from "@/components/effects/embers";
 import { robataFire } from "@/data/media";
-import { withBasePath } from "@/lib/i18n";
+import { useFrameSequence } from "@/components/media/use-frame-sequence";
 
 /**
  * CENA 3 — "A brasa acorda" (protagonista).
@@ -21,86 +21,8 @@ const SEQ_TO = 0.86;
 export function RobataFire({ eyebrow, title, tagline }: { eyebrow: string; title: string; tagline: string }) {
   const box = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
-  const draw = useRef<(p: number) => void>(() => {});
   const { scrollYProgress: p } = useScroll({ target: box, offset: ["start start", "end end"] });
-
-  // quadros: carregados só quando a cena se aproxima (nada pesa no início da página)
-  useEffect(() => {
-    const el = box.current;
-    const cv = canvas.current;
-    const ctx = cv?.getContext("2d");
-    if (!el || !cv || !ctx) return;
-    // celular em pé: recorte vertical do vídeo (bem mais leve)
-    const portrait = window.matchMedia("(orientation: portrait) and (max-width: 900px)").matches;
-    const dir = portrait ? robataFire.mobile : robataFire.desktop;
-    const N = robataFire.frames;
-    const imgs: (HTMLImageElement | null)[] = Array(N).fill(null);
-    let last = -1;
-    let want = 0;
-
-    const size = () => {
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      cv.width = Math.round(cv.clientWidth * dpr);
-      cv.height = Math.round(cv.clientHeight * dpr);
-      last = -1;
-      paint(want);
-    };
-    const paint = (f: number) => {
-      // o quadro pedido, ou o mais próximo já carregado
-      let i = f;
-      while (i > 0 && !imgs[i]?.complete) i--;
-      const im = imgs[i];
-      if (!im?.complete || !im.naturalWidth || i === last) return;
-      last = i;
-      const W = cv.width;
-      const H = cv.height;
-      const k = Math.max(W / im.naturalWidth, H / im.naturalHeight);
-      const w = im.naturalWidth * k;
-      const h = im.naturalHeight * k;
-      ctx.imageSmoothingQuality = "high";
-      ctx.drawImage(im, (W - w) / 2, (H - h) * 0.62, w, h);
-    };
-    draw.current = (prog: number) => {
-      want = Math.round(Math.min(1, Math.max(0, (prog - SEQ_FROM) / (SEQ_TO - SEQ_FROM))) * (N - 1));
-      paint(want);
-    };
-
-    const load = (i: number) => {
-      if (imgs[i]) return;
-      const im = new Image();
-      im.decoding = "async";
-      im.onload = () => {
-        if (i <= want) {
-          last = -1;
-          paint(want);
-        }
-      };
-      im.src = withBasePath(`${dir}/${String(i + 1).padStart(2, "0")}.webp`);
-      imgs[i] = im;
-    };
-    let started = false;
-    const start = () => {
-      if (started) return;
-      started = true;
-      // 1 a cada 6 primeiro (a cena já funciona), depois o resto
-      for (let i = 0; i < N; i += 6) load(i);
-      const rest = () => {
-        for (let i = 0; i < N; i++) load(i);
-      };
-      if ("requestIdleCallback" in window) window.requestIdleCallback(rest, { timeout: 1200 });
-      else setTimeout(rest, 300);
-    };
-    const io = new IntersectionObserver(([e]) => e.isIntersecting && start(), { rootMargin: "150% 0px" });
-    io.observe(el);
-    size();
-    window.addEventListener("resize", size);
-    return () => {
-      io.disconnect();
-      window.removeEventListener("resize", size);
-    };
-  }, []);
-
-  useMotionValueEvent(p, "change", (v) => draw.current(v));
+  useFrameSequence({ seq: robataFire, box, canvas, progress: p, from: SEQ_FROM, to: SEQ_TO, anchorY: 0.62 });
 
   // faísca: cai do alto até a grelha e se apaga quando a brasa pega
   const sparkY = useTransform(p, [0, SEQ_FROM + 0.02], ["8vh", "64vh"]);
