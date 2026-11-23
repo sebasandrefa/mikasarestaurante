@@ -16,6 +16,10 @@ type Props = {
   inView?: boolean;
   /** Mostra sem animação (ex.: hero já revelado por baixo da intro). */
   instant?: boolean;
+  /** Destaca as últimas N palavras (ex.: "alma Nikkei" no hero). */
+  accentLast?: number;
+  /** Classe das palavras destacadas. */
+  accentClassName?: string;
 };
 
 /**
@@ -32,12 +36,15 @@ export function SplitText({
   stagger = 0.07,
   inView = false,
   instant = false,
+  accentLast = 0,
+  accentClassName,
 }: Props) {
   const Tag = as;
   const ref = useRef<HTMLHeadingElement>(null);
   const seen = useInView(ref, { once: true, amount: 0.5 });
   const shown = inView ? seen : play;
   const lines = text.split("\n");
+  const total = text.split(/\s+/).filter(Boolean).length;
   let i = 0;
 
   return (
@@ -53,7 +60,10 @@ export function SplitText({
         <span key={li} className="block" aria-hidden>
           {line.split(" ").map((w, wi, arr) => (
             <span key={wi} className="inline-block whitespace-pre">
-              <span className="mk-split-word inline-block" style={{ ["--i" as string]: i++ }}>
+              <span
+                className={cn("mk-split-word inline-block", i >= total - accentLast && accentClassName)}
+                style={{ ["--i" as string]: i++ }}
+              >
                 {w}
               </span>
               {wi < arr.length - 1 ? " " : ""}
