@@ -74,7 +74,7 @@ function Chapter({ item, index, total, progress, lang }: { item: Feature; index:
         className="relative grid h-[min(80svh,46rem)] origin-top grid-rows-[1fr_auto] overflow-hidden border border-line bg-carvao md:grid-cols-[1.35fr_1fr] md:grid-rows-1"
       >
         <Link href={href} data-cursor={c.cursor.view} className="group relative block min-h-0 overflow-hidden">
-          <div className="size-full scale-100 will-change-transform backface-hidden transition-transform duration-[1400ms] ease-[var(--ease-mikasa)] group-hover:scale-[1.04]">
+          <div className="size-full scale-100 transition-transform [@media(hover:hover)]:will-change-transform duration-[1400ms] ease-[var(--ease-mikasa)] group-hover:scale-[1.04]">
             <MediaFrame asset={item.imagem} lang={lang} kanji="匠" sizes="(min-width:768px) 58vw, 92vw" />
           </div>
         </Link>

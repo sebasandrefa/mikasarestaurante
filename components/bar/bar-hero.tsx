@@ -24,16 +24,16 @@ export function BarHero({ eyebrow, title, intro, line, photos }: { eyebrow: stri
     <>
       <div ref={box} className="relative">
         <div className="relative h-[100svh] min-h-[36rem] overflow-hidden bg-sumi">
-          {/* o whisky (aparece quando o "sol" se põe) */}
+          {/* o whisky (aparece quando o "sol" se põe). O vídeo fica sempre visível — o iPhone não toca
+              vídeo com opacity 0 —; quem some é o véu escuro por cima dele. */}
+          <SceneVideo video={barPour} box={box} eager />
           <motion.div
             aria-hidden
-            className="absolute inset-0"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
+            className="pointer-events-none absolute inset-0 bg-sumi"
+            initial={{ opacity: 1 }}
+            animate={{ opacity: 0 }}
             transition={{ duration: 2.4, ease: EASE, delay: 0.3 }}
-          >
-            <SceneVideo video={barPour} box={box} eager />
-          </motion.div>
+          />
           {/* ocaso: o âmbar desce atrás do horizonte e some */}
           <motion.div
             aria-hidden
