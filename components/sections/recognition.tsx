@@ -10,11 +10,11 @@ import { site } from "@/data/site";
 import type { Locale } from "@/lib/i18n";
 import { sectionIds } from "@/lib/nav";
 
-/** Reconhecimentos — Restaurant Guru 2023–2026, seguidores e avaliações reais. */
+/** Reconhecimentos — Restaurant Guru 2023–2026, seguidores, diplomas do salão e avaliações reais. */
 export function Recognition({ lang }: { lang: Locale }) {
   const c = getCopy(lang);
   return (
-    <section id={sectionIds.recognition} className="relative border-y border-line py-[var(--spacing-section)] mk-washi">
+    <section id={sectionIds.recognition} className="relative overflow-x-clip border-y border-line py-[var(--spacing-section)] mk-washi">
       <div className="mx-auto max-w-[100rem] px-[var(--spacing-gutter)]">
         <SectionHeading index="07" eyebrow={c.recognition.eyebrow} title={c.recognition.title} align="center" />
 
@@ -52,6 +52,30 @@ export function Recognition({ lang }: { lang: Locale }) {
               <span className="sr-only"> {c.a11y.externalLink}</span>
             </a>
           </Reveal>
+        </div>
+
+        {/* diplomas do salão: dois quadros com fio dourado que se desenha */}
+        <div className="mx-auto mt-20 max-w-4xl md:mt-24">
+          <p className="mk-eyebrow flex items-center justify-center gap-4">
+            <span aria-hidden className="h-px w-10 bg-ouro/70" />
+            {c.recognition.distinctions}
+            <span aria-hidden className="h-px w-10 bg-ouro/70" />
+          </p>
+          <ul className="mt-10 grid gap-6 sm:grid-cols-2">
+            {site.distinctions.map((d, i) => (
+              <li key={d.title}>
+                <Reveal delay={i * 0.15} className="relative flex h-full flex-col items-center justify-center border border-line px-8 pb-9 pt-10 text-center">
+                  <span aria-hidden className="mk-draw-x absolute inset-x-0 top-0 h-px origin-center bg-gradient-to-r from-transparent via-ouro to-transparent" />
+                  <p className="font-sans text-[0.65rem] uppercase tracking-[0.34em] text-ouro">
+                    {d.source} · {d.year}
+                  </p>
+                  <p className="mk-sheen mt-5 font-display text-[clamp(2.4rem,1.8rem+2vw,3.4rem)] font-light italic leading-none">{d.title}</p>
+                  {d.place && <p className="mt-3 font-display text-xl text-washi">{d.place}</p>}
+                  <p className="mt-6 font-sans text-[0.62rem] uppercase tracking-[0.28em] text-washi-mute">{c.recognition.diploma}</p>
+                </Reveal>
+              </li>
+            ))}
+          </ul>
         </div>
 
         <div className="mx-auto mt-20 max-w-5xl md:mt-24">
