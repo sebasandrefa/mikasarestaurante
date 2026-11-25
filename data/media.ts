@@ -122,6 +122,15 @@ export const photos = {
     es: "Cuatro nigiri de atún con hoja de shiso y salsa de soya",
     en: "Four tuna nigiri with a shiso leaf and soy sauce",
   }),
+  // Enviadas pelo restaurante em 25/11/2026 (ampliadas 4x com Real-ESRGAN; recorte sem as faixas do celular)
+  gyozaVapor: photo("gyoza-vapor", 1400, 1867, {
+    es: "Gyozas al vapor con cebollín y ajonjolí, con salsa de soya",
+    en: "Steamed gyoza with scallions and sesame, with soy sauce",
+  }),
+  rollsCuchara: photo("rolls-cuchara", 1400, 1400, {
+    es: "Rolls flameados con aguacate servidos en cucharas de porcelana sobre pizarra",
+    en: "Seared rolls with avocado served on porcelain spoons over slate",
+  }),
 } satisfies Record<string, MediaAsset>;
 
 export const media = {
@@ -249,6 +258,58 @@ export const placeVideo: SceneVideo = {
   generatedByAI: false,
 };
 
+/**
+ * O lugar por dentro — fotos REAIS do salão enviadas pelo restaurante (WhatsApp 1200×1600),
+ * ampliadas 4x com Real-ESRGAN, reduzidas para 1500×2000 e com tratamento leve (cor mais quente,
+ * brancos contidos, vinheta) para o site escuro. Nada adicionado nem removido das cenas.
+ */
+const room = (id: string, width: number, height: number, alt: Localized): MediaAsset => photo(id, width, height, alt);
+export const roomPhotos = {
+  puerta: room("sala-puerta", 1500, 2000, {
+    es: "Sala de MIKASA con la puerta roja, el mural de cerezos y mesas listas para la cena",
+    en: "MIKASA's dining room with the red door, the cherry-blossom mural and tables set for dinner",
+  }),
+  sala: room("sala-lampara", 1500, 2000, {
+    es: "Mesa servida frente a la vitrina y la lámpara roja de la sala",
+    en: "A table set in front of the display case and the red pendant lamp",
+  }),
+  mesas: room("sala-mesas", 2000, 1500, {
+    es: "Mesas con manteles blancos, sillas rojas y negras, cortinas y caligrafía japonesa en la pared",
+    en: "Tables with white cloths, red and black chairs, curtains and Japanese calligraphy on the wall",
+  }),
+  barra: room("sala-barra", 1500, 2000, {
+    es: "Barra con botellas de gin Hendrick's y el reconocimiento Restaurant Guru 2023",
+    en: "Bar with Hendrick's gin bottles and the Restaurant Guru 2023 recognition",
+  }),
+  vitrina: room("sala-vitrina", 1500, 2000, {
+    es: "Vitrina iluminada sobre la cava de vinos, junto al diploma «Best Sushi» de Restaurant Guru 2023",
+    en: "Lit display case above the wine cooler, next to the Restaurant Guru 2023 “Best Sushi” award",
+  }),
+};
+
+/**
+ * Cena "Pase adelante": vídeo REAL do salão (não é IA). Trechos 0–4,4 s (porta com o letreiro),
+ * 5–8 s (mesas), 1:31,5–1:36,5 (vitrine) e 1:42,3–1:45,8 (porta vermelha para a terraza),
+ * estabilizados (vidstab), unidos com fusões, câmera lenta 0,6x (fonte 60 fps), ampliados 4x
+ * (Real-ESRGAN) e com cor mais quente e brancos contidos. Celular: recorte retrato.
+ */
+export const roomVideo: SceneVideo = {
+  src: "/media/sala/sala-124e6508.mp4",
+  mobile: "/media/sala/sala-m-b203cd96.mp4",
+  poster: "/media/sala/poster.webp",
+  position: "50% 50%",
+  generatedByAI: false,
+};
+
+/** Vídeo REAL (vertical) da terraza cheia à noite: trechos 0–3,5 s e 17,6–21,4 s, estabilizados, 0,75x, ampliados. */
+export const terraceNights: SceneVideo = {
+  src: "/media/sala/noches-01c5c871.mp4",
+  mobile: "/media/sala/noches-01c5c871.mp4",
+  poster: "/media/sala/noches-poster.webp",
+  position: "50% 50%",
+  generatedByAI: false,
+};
+
 export type GalleryItem = {
   asset: MediaAsset;
   category: "platos" | "sushi" | "robata" | "bebidas" | "ambiente" | "detalles" | "chef" | "fuego" | "postres";
@@ -257,21 +318,28 @@ export type GalleryItem = {
 
 const gi = (asset: MediaAsset, category: GalleryItem["category"], ratio: GalleryItem["ratio"]): GalleryItem => ({ asset, category, ratio });
 
-/** Galeria editorial — fotos oficiais. Ambiente: quadros do vídeo real da terraza. Chef, bar e fogo: aguardando material. */
+/** Galeria editorial — fotos oficiais. Ambiente: fotos reais do salão e quadros do vídeo real da terraza. Chef, bar e fogo: aguardando material. */
 export const gallery: GalleryItem[] = [
   gi(photos.sashimiSelection, "sushi", "portrait"),
+  gi(roomPhotos.puerta, "ambiente", "portrait"),
   gi(photos.lomoSaltadoCausa, "platos", "portrait"),
   gi(photos.artesanoDessert, "postres", "portrait"),
+  gi(placePhotos.terrazaLuces, "ambiente", "landscape"),
   gi(photos.nigiriExperience, "sushi", "landscape"),
   gi(photos.mitokoTataki, "detalles", "portrait"),
+  gi(roomPhotos.sala, "ambiente", "portrait"),
   gi(photos.arrozCamaron, "platos", "square"),
+  gi(photos.rollsCuchara, "sushi", "square"),
   gi(photos.wakameKukuSalad, "platos", "portrait"),
+  gi(roomPhotos.barra, "ambiente", "portrait"),
   gi(photos.nigiriWine, "sushi", "portrait"),
-  gi(photos.duckRice, "platos", "portrait"),
-  gi(photos.salmonRoll, "sushi", "portrait"),
-  gi(photos.nagasakiBeefRice, "platos", "portrait"),
-  gi(photos.hamachiRollNigiri, "sushi", "portrait"),
-  gi(placePhotos.terrazaLuces, "ambiente", "landscape"),
   gi(placePhotos.terrazaLetrero, "ambiente", "landscape"),
+  gi(photos.duckRice, "platos", "portrait"),
+  gi(roomPhotos.mesas, "ambiente", "landscape"),
+  gi(photos.salmonRoll, "sushi", "portrait"),
+  gi(photos.gyozaVapor, "platos", "portrait"),
+  gi(photos.nagasakiBeefRice, "platos", "portrait"),
+  gi(roomPhotos.vitrina, "ambiente", "portrait"),
+  gi(photos.hamachiRollNigiri, "sushi", "portrait"),
   gi(placePhotos.palmera, "ambiente", "landscape"),
 ];

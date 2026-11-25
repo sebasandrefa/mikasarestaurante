@@ -48,6 +48,7 @@ next-env.d.ts
 !/public/media/robata-fogo/*.mp4
 !/public/media/bar-whisky-pour/*.mp4
 !/public/media/lugar/*.mp4
+!/public/media/sala/*.mp4
 
 # export estático (GitHub Pages)
 /out/
