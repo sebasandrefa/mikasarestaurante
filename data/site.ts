@@ -94,6 +94,15 @@ export const site = {
     { name: "Restaurant Guru", year: 2026 },
   ],
 
+  /**
+   * Diplomas expostos no salão (vistos nas fotos e no vídeo enviados pelo restaurante;
+   * confirmados pelo dono em 25/11/2026). Texto igual ao do diploma.
+   */
+  distinctions: [
+    { source: "Restaurant Guru", year: 2023, title: "Best Sushi", place: "in Puerto Plata" },
+    { source: "Restaurant Guru", year: 2023, title: "Recommended", place: null },
+  ],
+
   currency: "USD",
   priceRange: "$$$$",
   servesCuisine: ["Japanese", "Nikkei"],

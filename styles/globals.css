@@ -271,6 +271,14 @@ html[data-intro] #inicio .mk-early {
   opacity: 1;
   transform: none;
 }
+/* fio dourado que se desenha do centro para as pontas quando o Reveal pai aparece */
+.mk-draw-x {
+  transform: scaleX(0);
+  transition: transform 1.6s var(--ease-mikasa) calc(var(--rd, 0s) + 0.3s);
+}
+.mk-reveal[data-shown] .mk-draw-x {
+  transform: scaleX(1);
+}
 .mk-split-word {
   opacity: 0;
   transform: translate3d(0, 0.6em, 0);
@@ -370,6 +378,19 @@ html[data-intro] #inicio .mk-early {
   35%,
   100% {
     background-position: 0% 0;
+  }
+}
+
+/* "Desplace para recorrer": um traço de ouro que corre para a direita. */
+.mk-hint-line {
+  animation: mk-hint-line 2.4s var(--ease-mikasa) infinite;
+}
+@keyframes mk-hint-line {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(200%);
   }
 }
 
