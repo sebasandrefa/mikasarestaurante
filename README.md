@@ -11,7 +11,7 @@ npm run build
 
 - Idiomas: Español (padrão, `/`) e English (`/en`).
 - Rotas: `/` · `/menu` · `/bar` (e `/en/...`).
-- Dados editáveis em `data/` — ver `CLAUDE.md` para as regras do projeto.
+- Dados editáveis em `data/`.
 
 ## Deploy (Vercel)
 
